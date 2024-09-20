@@ -107,7 +107,7 @@ There are a few ``useful prosody commands`` that can help you **better manage** 
 
 - Perform a **check on the Server**
     
-        sudo prosodyctl stop
+        sudo prosodyctl check
 
 ## SPADE Installation
 
