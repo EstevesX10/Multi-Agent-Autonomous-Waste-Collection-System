@@ -36,13 +36,9 @@
 
 > ADD PROJECT OVERVIEW
 
-## Project Development (Dependencies & Execution)
+## Environment Setup (Dependencies & Execution)
 
-> ADD THE DEPENDENCIES.md FILE TO THE REPO
-
-This project was developed using a `Notebook`. Therefore if you're looking forward to test it out yourself, keep in mind to either use a **[Anaconda Distribution](https://www.anaconda.com/)** or a 3rd party software that helps you inspect and execute it. 
-
-Therefore, for more informations regarding the **Virtual Environment** used in Anaconda, consider checking the [DEPENDENCIES.md](https://github.com/EstevesX10/__INSERT_REPO_NAME__/blob/main/DEPENDENCIES.md) file.
+> ADD ENVIRONMENT SETUP DESCRIPTION AND HYPERLINK TO THE SETUP.md
 
 ## Project Results
 
