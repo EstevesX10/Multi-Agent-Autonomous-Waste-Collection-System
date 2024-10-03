@@ -3,15 +3,15 @@
 </div>
 
 <p align="center" width="100%">
-    <img src="./Multi-Agent Autonomous Waste Collection System/Assets/GarbageRetrieval.png" width="55%" height="55%" alt="Project Image"/>
+    <img src="./Multi-Agent Autonomous Waste Collection System/Assets/GarbageMan.png" width="55%" height="55%" alt="Multi-Agent Autonomous Waste Collection System"/>
 </p>
 
 <div align="center">
     <a>
-        <img src="https://img.shields.io/badge/Made%20with-Python-79AC78?style=for-the-badge&logo=Python&logoColor=79AC78">
+        <img src="https://img.shields.io/badge/Made%20with-Python-6A9C89?style=for-the-badge&logo=Python&logoColor=6A9C89">
     </a>
     <a>
-        <img src="https://img.shields.io/badge/Made%20with-SPADE-79AC78?style=for-the-badge&logo=robotframework&logoColor=79AC78">
+        <img src="https://img.shields.io/badge/Made%20with-SPADE-6A9C89?style=for-the-badge&logo=robotframework&logoColor=6A9C89">
     </a>
 </div>
 
@@ -19,16 +19,16 @@
 
 <div align="center">
     <a href="https://github.com/EstevesX10/Multi-Agent-Autonomous-Waste-Collection-System/blob/main/LICENSE">
-        <img src="https://img.shields.io/github/license/EstevesX10/Multi-Agent-Autonomous-Waste-Collection-System?style=flat&logo=gitbook&logoColor=79AC78&label=License&color=79AC78">
+        <img src="https://img.shields.io/github/license/EstevesX10/Multi-Agent-Autonomous-Waste-Collection-System?style=flat&logo=gitbook&logoColor=6A9C89&label=License&color=6A9C89">
     </a>
     <a href="#">
-        <img src="https://img.shields.io/github/repo-size/EstevesX10/Multi-Agent-Autonomous-Waste-Collection-System?style=flat&logo=googlecloudstorage&logoColor=79AC78&logoSize=auto&label=Repository%20Size&color=79AC78">
+        <img src="https://img.shields.io/github/repo-size/EstevesX10/Multi-Agent-Autonomous-Waste-Collection-System?style=flat&logo=googlecloudstorage&logoColor=6A9C89&logoSize=auto&label=Repository%20Size&color=6A9C89">
     </a>
     <a href="#">
-        <img src="https://img.shields.io/github/stars/EstevesX10/Multi-Agent-Autonomous-Waste-Collection-System?style=flat&logo=adafruit&logoColor=79AC78&logoSize=auto&label=Stars&color=79AC78">
+        <img src="https://img.shields.io/github/stars/EstevesX10/Multi-Agent-Autonomous-Waste-Collection-System?style=flat&logo=adafruit&logoColor=6A9C89&logoSize=auto&label=Stars&color=6A9C89">
     </a>
     <a href="https://github.com/EstevesX10/Multi-Agent-Autonomous-Waste-Collection-System/blob/main/SETUP.md">
-        <img src="https://img.shields.io/badge/Setup-SETUP.md-white?style=flat&logo=springboot&logoColor=79AC78&logoSize=auto&color=79AC78"> 
+        <img src="https://img.shields.io/badge/Setup-SETUP.md-white?style=flat&logo=springboot&logoColor=6A9C89&logoSize=auto&color=6A9C89"> 
     </a>
 </div>
 
