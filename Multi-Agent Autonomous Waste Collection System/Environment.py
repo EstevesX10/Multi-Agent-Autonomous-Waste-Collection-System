@@ -11,8 +11,8 @@ import numpy as np
 # Maybe use a Graph
 from DataStructures import (Graph)
 
-# from .BinAgent import (BinAgent)
-# from .TruckAgent import (TruckAgent)
+# from BinAgent import (BinAgent)
+# from TruckAgent import (TruckAgent)
 
 class Road():
     # Type of Value I am thinking of putting inside the connections of the graph
@@ -64,7 +64,9 @@ class Environment():
                 else:
                     startNode, endNode, availability, distance,fuelConsumption, batteryConsumption = map(int, line.split(' '))
                     newRoad = Road(distance, bool(availability), fuelConsumption, batteryConsumption)
+                    # Making the connections directed to both sides
                     newGraph.insertNewEdge(startNode, endNode, newRoad)
+                    newGraph.insertNewEdge(endNode, startNode, newRoad)
 
         if verbose:
             print(f"Number of Nodes Added to the Network: {newGraph.numVertices()}")
@@ -119,4 +121,5 @@ class Environment():
         return distanceMatrix, parentMatrix
 
 if __name__ == "__main__":
+    # The matrices need checking that they are working properly
     env = Environment()
