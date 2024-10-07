@@ -57,7 +57,8 @@ class Environment():
                         newRoad = Road(distance, availability, fuelConsumption, batteryConsumption)
                         self.graph.insertNewEdge(startNode, endNode, newRoad)
 
-        print(self.graph.numEdges())
+        print(f"Number of Nodes: {self.graph.numVertices()}")
+        print(f"Number of Edges: {self.graph.numEdges()}")
 
 if __name__ == "__main__":
     env = Environment()
