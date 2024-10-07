@@ -6,11 +6,11 @@ from spade.message import (Message)
 import asyncio
 import spade
 
-# from .Environment import (Environment)
-# from .BinAgent import (BinAgent)
+from Environment import (Environment)
+from BinAgent import (BinAgent)
 
 class TruckAgent(Agent):
-    def __init__(self, jid: str, password: str, environment, verify_security: bool = False) -> None:
+    def __init__(self, jid: str, password: str, environment:Environment, verify_security: bool = False) -> None:
         super().__init__(jid, password, verify_security)
         self.env = environment
 
@@ -51,7 +51,7 @@ class TruckAgent(Agent):
         return self.getCurrentTrashLevel() == 0
 
     # ADD A CHECK FOR THE TRASH BIN AND THE TRUCK TO BE IN THE SAME POSITION INSIDE THE ENV
-    def _validTrashExtraction(self, trashBin) -> bool:
+    def _validTrashExtraction(self, trashBin:BinAgent) -> bool:
         """
         # Description
             -> Check if a certain trash extraction from a trashBin to the Truck is valid
@@ -59,7 +59,7 @@ class TruckAgent(Agent):
         return self.getCurrentAvailableTrashCapacity() <= trashBin.getCurrentTrashLevel()
 
     # MAYBE CHANGE IF WE INCLUDE A ENVIRONMENT INSTANCE INSIDE THIS CLASS
-    def extractBinTrash(self, trashBin):
+    def extractBinTrash(self, trashBin:BinAgent):
         """
         # Description
             -> Performs Trash Extraction

@@ -7,10 +7,10 @@ from spade.message import (Message)
 import asyncio
 import spade
 
-# from .Environment import (Environment)
+from Environment import (Environment)
 
 class BinAgent(Agent):
-    def __init__(self, jid:str, password:str, environment, verify_security:bool=False) -> None:
+    def __init__(self, jid:str, password:str, environment:Environment, verify_security:bool=False) -> None:
         super().__init__(jid, password, verify_security)
         self.env = environment
         self._currentTrashLevel = 0 # Empty Bin
@@ -88,7 +88,7 @@ class BinAgent(Agent):
 async def main():
     bin = BinAgent("admin@localhost", "password", "Add_Env_Here")
     print(bin.getCurrentTrashLevel())
-    bin.depositTrash(10)
+    # bin.depositTrash(10)
     print(bin.getCurrentTrashLevel())
     await bin.start()
 

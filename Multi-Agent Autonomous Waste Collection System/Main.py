@@ -3,9 +3,9 @@ import asyncio
 import spade
 
 # Import developed classes
-from .Environment import (Environment)
-from .TruckAgent import (TruckAgent)
-from .BinAgent import (BinAgent)
+from Environment import (Environment)
+from TruckAgent import (TruckAgent)
+from BinAgent import (BinAgent)
 
 # Main Loop
 async def main():
