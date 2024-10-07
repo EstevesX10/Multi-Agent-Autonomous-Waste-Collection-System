@@ -1,4 +1,4 @@
-## Enviromnet Layout 
+## Environment Layout 
 
 This file focuses on documenting the environment layouts used in the project's development.
 
