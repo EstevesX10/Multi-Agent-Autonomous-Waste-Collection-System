@@ -27,7 +27,7 @@ class Edge:
 
         return self.enode
 
-    def value(self) -> any:
+    def getValue(self) -> any:
         """
         # Description
             -> Returns the value (weight) of the edge.
