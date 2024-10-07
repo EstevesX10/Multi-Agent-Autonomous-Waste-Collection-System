@@ -7,9 +7,6 @@ This file focuses on documenting the environment layouts used in the project's d
 - First Line of the Configuration File:
     - Number of Nodes in the Network
 
-- Second Line of the Configuration File:
-    - Number of Edges in the Network
-
 - Remaining lines of the Configuration File:
     - Description of each edge in the network using the following format:
     

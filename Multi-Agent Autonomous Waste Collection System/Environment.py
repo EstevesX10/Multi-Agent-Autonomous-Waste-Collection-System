@@ -49,13 +49,10 @@ class Environment():
                 if (idx == 0):
                     numberNodes = int(line)
                     self.graph = Graph(numberNodes)
-                elif(idx == 1):
-                    numberEdges = int(line)
                 else:
-                    for _ in range(numberEdges):
-                        startNode, endNode, distance, availability, fuelConsumption, batteryConsumption = map(int, line.split(' '))
-                        newRoad = Road(distance, availability, fuelConsumption, batteryConsumption)
-                        self.graph.insertNewEdge(startNode, endNode, newRoad)
+                    startNode, endNode, distance, availability, fuelConsumption, batteryConsumption = map(int, line.split(' '))
+                    newRoad = Road(distance, availability, fuelConsumption, batteryConsumption)
+                    self.graph.insertNewEdge(startNode, endNode, newRoad)
 
         print(f"Number of Nodes: {self.graph.numVertices()}")
         print(f"Number of Edges: {self.graph.numEdges()}")
