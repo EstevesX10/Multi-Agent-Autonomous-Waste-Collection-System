@@ -1,18 +1,21 @@
 # Import necessary SPADE modules
 from __future__ import (annotations)
-from spade.agent import Agent
+from spade.agent import (Agent)
 from spade.behaviour import (CyclicBehaviour, OneShotBehaviour, PeriodicBehaviour)
 from spade.template import (Template)
 from spade.message import (Message)
 import asyncio
 import spade
 
+# from .Environment import (Environment)
+
 class BinAgent(Agent):
-    def __init__(self, jid:str, password:str, verify_security:bool=False):
+    def __init__(self, jid:str, password:str, environment, verify_security:bool=False) -> None:
         super().__init__(jid, password, verify_security)
-        self._binFillLevel = 0
-        self._maxCapacity = 10
-        self._requestExtractionThreshold = 5
+        self.env = environment
+        self._currentTrashLevel = 0 # Empty Bin
+        self._maxTrashCapacity = 30
+        self._requestTrashExtractionThreshold = 5
         # self._mapPosition = (0,0)
 
     class BroadcastFillLevel(CyclicBehaviour):
@@ -42,27 +45,39 @@ class BinAgent(Agent):
             # stop agent from behaviour
             await self.agent.stop()
 
-    async def setup(self):
+    async def setup(self) -> None:
         print(f"Hello World! I'm Trash Bin <{str(self.jid)}>")
         self.add_behaviour(self.BroadcastFillLevel())
         self.add_behaviour(self.RequestTrashExtraction())
     
-    def getFillLevel(self):
-        return self._binFillLevel
+    def getCurrentTrashLevel(self) -> int:
+        """
+        # Description
+            -> Get the bin's current trash level
+        """
+        return self._currentTrashLevel
 
-    def isEmpty(self):
-        return self._binFillLevel == 0
+    def isEmpty(self) -> bool:
+        """
+        # Description
+            -> Checks if the bin is empty
+        """
+        return self.getCurrentTrashLevel() == 0
 
-    def cleanBin(self):
-        if self._binFillLevel > 0:
-            self._binFillLevel = 0
+    def cleanBin(self) -> None:
+        """
+        # Description
+            -> Removes the trash from itself (from the Bin)
+        """
+        if not self.isEmpty():
+            self._currentTrashLevel = 0
     
-    def _checkValidTrashDeposit(self, trashFillLevel):
-        return self._binFillLevel + trashFillLevel <= self._maxCapacity 
+    # def _checkValidTrashDeposit(self, trashFillLevel):
+    #     return self._binFillLevel + trashFillLevel <= self._maxCapacity 
 
-    def depositTrash(self, trashFillLevel):
-        if (self._checkValidTrashDeposit(trashFillLevel)):
-            self._binFillLevel += trashFillLevel
+    # def depositTrash(self, trashFillLevel):
+    #     if (self._checkValidTrashDeposit(trashFillLevel)):
+    #         self._binFillLevel += trashFillLevel
 
     # def get_position(self):
     #     return self._mapPosition
@@ -71,10 +86,10 @@ class BinAgent(Agent):
     #     self._mapPosition = newPosition
 
 async def main():
-    bin = BinAgent("admin@localhost", "password")
-    print(bin.getFillLevel())
+    bin = BinAgent("admin@localhost", "password", "Add_Env_Here")
+    print(bin.getCurrentTrashLevel())
     bin.depositTrash(10)
-    print(bin.getFillLevel())
+    print(bin.getCurrentTrashLevel())
     await bin.start()
 
 if __name__ == "__main__":
