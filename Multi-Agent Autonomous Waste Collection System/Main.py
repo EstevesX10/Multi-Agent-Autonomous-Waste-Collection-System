@@ -1,25 +1,25 @@
 # Import necessary SPADE modules
-from .Environment import (Environment)
 import asyncio
 import spade
+
+# Import developed classes
+from .Environment import (Environment)
+from .TruckAgent import (TruckAgent)
+from .BinAgent import (BinAgent)
 
 # Main Loop
 async def main():
     # Initializing the environment
     env = Environment()
-
-    # jid = input("JID> ")
-    # passwd = getpass.getpass()
-    # dummy = DummyAgent(jid, passwd)
     
     # Initializing the Agents
-    # drone1 = DroneAgent("drone1@localhost", "password", env1, 1, 4, 3, 2, 20) #"normal" drone
-    # drone2 = DroneAgent("drone2@localhost", "password", env1, 5, 10, 10, 1, 40) #"heavy" drone more carry capacity less speed
+    truck = TruckAgent("truck1@localhost", "password", env)
 
+    bin = BinAgent("bin1@localhost", "password", env)
     # hub1 = HubAgent("hub1@localhost", "password", env1, 0, 0, 0)
    
-    # await drone1.start(auto_register=True)
-    # await hub1.start(auto_register=True)
+    await truck.start(auto_register=True)
+    await bin.start(auto_register=True)
 
     # #start recording the environment for further display
     # hub1.add_behaviour(HubAgent.RecordPosition(period=0.2))
