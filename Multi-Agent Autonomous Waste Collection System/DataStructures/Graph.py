@@ -121,7 +121,7 @@ class Graph:
         """
         return self.verts[i].adjs()
 
-    def insertNewEdge(self, i:int, j:int, value_ij:(int | float)) -> None:
+    def insertNewEdge(self, i:int, j:int, value_ij:any) -> None:
         """
         # Description
             -> Inserts a new edge from vertex i to vertex j with a given value (weight).
