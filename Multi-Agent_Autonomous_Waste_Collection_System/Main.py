@@ -7,7 +7,6 @@ from Environment import Environment
 from TruckAgent import TruckAgent
 from BinAgent import BinAgent
 
-
 # Main Loop
 async def main():
     # Initializing the environment
@@ -17,11 +16,14 @@ async def main():
     bin = BinAgent("bin1@localhost", "password", env)
     truck = TruckAgent("truck1@localhost", "password", env)
 
+    # Insert the Agents into the environment
     env.addAgent(0, truck)
     env.addAgent(1, bin)
 
+    # Print the agents per nodes of the network
     env.printNodes()
 
+    # Wait for the Agents to Start
     await bin.start(auto_register=True)
     await truck.start(auto_register=True)
 
@@ -33,7 +35,6 @@ async def main():
     # await drone1.stop()
     # print("drone1 agent has stoped")
     # await spade.wait_until_finished(drone2)
-
 
 if __name__ == "__main__":
     spade.run(main())

@@ -26,20 +26,23 @@ class BinAgent(Agent):
 
     class FillLevelReporterBehaviour(CyclicBehaviour):
         async def run(self):
-            msg = await self.receive(timeout=10)  # wait for a message for 10 seconds
+            # wait for a message for 10 seconds
+            msg = await self.receive(timeout=10)
+
+            # Check if a message was received and send a reply with the bin's current trash level  
             if msg:
-                print("RECEIVED MESSAGE")
+                print(f"{self.agent.jid}\t\t[RECEIVED MESSAGE]")
                 response = msg.make_reply()
                 response.body = str(self.agent.getCurrentTrashLevel())
                 await self.send(response)
-                print("Sent Reply")
+                print(f"{self.agent.jid}\t\t[REPLY SENT]")
 
     async def setup(self) -> None:
-        print(f"Hello World! I'm Trash Bin <{str(self.jid)}>")
+        print(f"[SETUP] {str(self.jid)}\n")
 
+        # Define a FillLevelReporterBehaviour to send the current trash level to nearby trucks
         template = Template()
         template.set_metadata("performative", "fill_level_query")
-        
         self.add_behaviour(self.FillLevelReporterBehaviour(), template)
 
         msg = Message()
