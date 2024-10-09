@@ -1,3 +1,5 @@
+from spade.agent import Agent
+
 class Edge:
     """
     Class representing an edge in a graph.
@@ -47,7 +49,6 @@ class Edge:
 
         self.value = v
 
-
 class Node:
     """
     Class representing a node in a graph.
@@ -57,7 +58,7 @@ class Node:
     def __init__(self) -> None:
         """
         # Description
-            -> Initializes a new node with an empty list of neighbors (adjacent edges).
+            -> Initializes a new node with an empty list of neighbors (adjacent edges) and another for agent related contents.
         """
 
         self.neighbours = []
@@ -73,12 +74,25 @@ class Node:
 
         return self.neighbours
 
-    def addContent(self, agent):
+    def addContent(self, agent:Agent) -> None:
+        """
+        # Description
+            -> Inserts a given agent to the current node's contents.
+
+        := return: None, since we are simply introducing a new agent to the network.
+        """
+
         self.contents.append(agent)
 
-    def getContents(self):
-        return self.contents
+    def getContents(self) -> list[Agent]:
+        """
+        # Description
+            -> Returns the list with the Agents inside the current node.
 
+        := return: The list with the contents of the current node.
+        """
+
+        return self.contents
 
 class Graph:
     """
@@ -161,6 +175,15 @@ class Graph:
                 return adj  # Return the edge if found
         return None  # Return None if no edge is found
 
-    def addAgentNode(self, nodeId, agent):
+    def addAgentNode(self, nodeId:int, agent:Agent) -> None:
+        """
+        # Description
+            -> Introduces a given agent to the node identified by the provided Node ID
+
+        := param: nodeId - Vertex in which we pretend to insert a Agent.
+        := param: agent - Agent to be inserted.
+        := return: None, since we are only adding an agent to a node.
+        """
+
         # Find the node to insert the agent into
         self.verts[nodeId].addContent(agent)
