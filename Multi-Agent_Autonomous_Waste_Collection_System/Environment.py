@@ -43,8 +43,8 @@ class Environment:
             "./EnvironmentLayouts/Layout1.txt"
         )
         self.distanceMatrix, self.parentMatrix = self.__calculateMatrices()
-        print(self.distanceMatrix)
-        print(self.parentMatrix)
+        # print(self.distanceMatrix)
+        # print(self.parentMatrix)
 
     def __readGraph(
         self, envConfiguration: str, verbose: bool = False
@@ -83,7 +83,7 @@ class Environment:
 
         return numberNodes, newGraph
 
-    def __calculateMatrices(self):
+    def __calculateMatrices(self) -> Tuple[np.ndarray, np.ndarray]:
         # Create an empty matrix to store all the distances between nodes in the graph
         n = self.numberNodes
         distanceMatrix = np.zeros(
@@ -135,14 +135,11 @@ class Environment:
 
         return distanceMatrix, parentMatrix
 
-
-    def printNodes(self):
+    def printNodes(self) -> None:
+        # Loop over each node and print what contents it witholds
         for node in self.graph.verts:
             print(node.getContents())
 
-    def addAgent(self, nodeId, agent):
+    def addAgent(self, nodeId:int, agent:Agent) -> None:
+        # Insert a Agent into a given nodule of the network
         self.graph.addAgentNode(nodeId, agent)
-
-if __name__ == "__main__":
-    # The matrices need checking that they are working properly
-    env = Environment()
