@@ -10,12 +10,10 @@ from typing import Tuple
 
 import numpy as np
 
-# Maybe use a Graph
 from DataStructures import Graph
 
 # from BinAgent import (BinAgent)
 # from TruckAgent import (TruckAgent)
-
 
 @dataclass
 class Road:
@@ -38,7 +36,6 @@ class Road:
 
     def toggleAvailability(self):
         self._availability = 0 if self._availability == 1 else 1
-
 
 class Environment:
     def __init__(self) -> None:
@@ -138,6 +135,13 @@ class Environment:
 
         return distanceMatrix, parentMatrix
 
+
+    def printNodes(self):
+        for node in self.graph.verts:
+            print(node.getContents())
+
+    def addAgent(self, nodeId, agent):
+        self.graph.addAgentNode(nodeId, agent)
 
 if __name__ == "__main__":
     # The matrices need checking that they are working properly

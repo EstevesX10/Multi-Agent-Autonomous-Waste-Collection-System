@@ -73,6 +73,9 @@ class Node:
 
         return self.neighbours
 
+    def addContent(self, agent):
+        self.contents.append(agent)
+
     def getContents(self):
         return self.contents
 
@@ -157,3 +160,7 @@ class Graph:
             if adj.endnode() == j:
                 return adj  # Return the edge if found
         return None  # Return None if no edge is found
+
+    def addAgentNode(self, nodeId, agent):
+        # Find the node to insert the agent into
+        self.verts[nodeId].addContent(agent)

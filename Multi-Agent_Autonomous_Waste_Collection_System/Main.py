@@ -14,13 +14,16 @@ async def main():
     env = Environment()
 
     # Initializing the Agents
+    bin = BinAgent("bin1@localhost", "password", env)
     truck = TruckAgent("truck1@localhost", "password", env)
 
-    bin = BinAgent("bin1@localhost", "password", env)
-    # hub1 = HubAgent("hub1@localhost", "password", env1, 0, 0, 0)
+    env.addAgent(0, truck)
+    env.addAgent(1, bin)
 
-    await truck.start(auto_register=True)
+    env.printNodes()
+
     await bin.start(auto_register=True)
+    await truck.start(auto_register=True)
 
     # #start recording the environment for further display
     # hub1.add_behaviour(HubAgent.RecordPosition(period=0.2))

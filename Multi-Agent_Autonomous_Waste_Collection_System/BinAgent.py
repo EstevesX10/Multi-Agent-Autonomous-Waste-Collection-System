@@ -9,7 +9,6 @@ import spade
 
 from Environment import Environment
 
-
 class BinAgent(Agent):
     def __init__(
         self,
@@ -29,16 +28,26 @@ class BinAgent(Agent):
         async def run(self):
             msg = await self.receive(timeout=10)  # wait for a message for 10 seconds
             if msg:
+                print("RECEIVED MESSAGE")
                 response = msg.make_reply()
-                response.body = self.agent.getCurrentTrashLevel()
+                response.body = str(self.agent.getCurrentTrashLevel())
                 await self.send(response)
+                print("Sent Reply")
 
     async def setup(self) -> None:
         print(f"Hello World! I'm Trash Bin <{str(self.jid)}>")
 
         template = Template()
-        template.metadata = {"performative": "fill_level_query"}
+        template.set_metadata("performative", "fill_level_query")
+        
         self.add_behaviour(self.FillLevelReporterBehaviour(), template)
+
+        msg = Message()
+        msg.set_metadata("performative", "fill_level_query")
+        msg.body="bruhhhhh"
+        # self.add_behaviour(ProximitySenderBehaviour(msg, SIGNAL_STRENGTH))
+
+        print(template.match(msg))
 
     def getCurrentTrashLevel(self) -> int:
         """
@@ -74,15 +83,3 @@ class BinAgent(Agent):
 
     # def set_position(self, newPosition):
     #     self._mapPosition = newPosition
-
-
-async def main():
-    bin = BinAgent("admin@localhost", "password", "Add_Env_Here")
-    print(bin.getCurrentTrashLevel())
-    # bin.depositTrash(10)
-    print(bin.getCurrentTrashLevel())
-    await bin.start()
-
-
-if __name__ == "__main__":
-    spade.run(main())

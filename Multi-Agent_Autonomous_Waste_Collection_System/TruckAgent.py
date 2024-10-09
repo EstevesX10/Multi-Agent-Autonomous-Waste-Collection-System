@@ -27,8 +27,7 @@ class PickUpBehaviour(OneShotBehaviour):
     async def on_end(self):
         print(f"Behaviour finished with exit code {self.exit_code}.")
 
-
-class ProximitySenderBehaviour(OneShotBehaviour):
+class ProximitySenderBehaviour(CyclicBehaviour):
     def __init__(self, msg: Message, signal_dist: float):
         super().__init__()
         self.msg = msg
@@ -47,21 +46,23 @@ class ProximitySenderBehaviour(OneShotBehaviour):
             if depth >= self.signal_dist:
                 continue
 
-            for n in env.graph.adjsNodes(node):
-                if visited[node]:
+            for edge in env.graph.adjsNodes(node):
+                n = edge.endnode()
+                
+                if visited[n]:
                     continue
 
-                edge = env.graph.find_edge(node, n)
                 nodes.append((n, depth + edge.value.getDistance()))
 
                 content = env.graph.verts[n].getContents()
+                
                 for a in content:
                     if isinstance(a, BinAgent):
                         self.msg.to = a.jid.localpart + "@" + a.jid.domain
                         await self.send(self.msg)
+                        print("[TRUCK SENT A MESSAGE]")
 
             i += 1
-
 
 class ListenerBehaviour(CyclicBehaviour):
     async def run(self):
@@ -93,13 +94,14 @@ class TruckAgent(Agent):
         self._mapPosition = 0
 
     async def setup(self):
-        print("setup")
+        print("[setup TRUCK]")
         template = Template()
-        template.metadata = {"performative": "fill_level_query"}
+        template.set_metadata("performative", "fill_level_query")
         self.add_behaviour(ListenerBehaviour(), template)
 
         msg = Message()
-        msg.metadata = {"performative": "fill_level_query"}
+        msg.set_metadata("performative", "fill_level_query")
+        msg.body="bruhhhhh"
         self.add_behaviour(ProximitySenderBehaviour(msg, SIGNAL_STRENGTH))
 
     def getMaxTrashCapacity(self) -> int:
