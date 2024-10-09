@@ -1,55 +1,45 @@
 # Import necessary SPADE modules
-from __future__ import (annotations)
-from spade.agent import (Agent)
-from spade.behaviour import (CyclicBehaviour, OneShotBehaviour, PeriodicBehaviour)
-from spade.template import (Template)
-from spade.message import (Message)
+from __future__ import annotations
+from spade.agent import Agent
+from spade.behaviour import CyclicBehaviour, OneShotBehaviour, PeriodicBehaviour
+from spade.template import Template
+from spade.message import Message
 import asyncio
 import spade
 
-from Environment import (Environment)
+from Environment import Environment
+
 
 class BinAgent(Agent):
-    def __init__(self, jid:str, password:str, environment:Environment, verify_security:bool=False) -> None:
+    def __init__(
+        self,
+        jid: str,
+        password: str,
+        environment: Environment,
+        verify_security: bool = False,
+    ) -> None:
         super().__init__(jid, password, verify_security)
         self.env = environment
-        self._currentTrashLevel = 0 # Empty Bin
+        self._currentTrashLevel = 0  # Empty Bin
         self._maxTrashCapacity = 30
         self._requestTrashExtractionThreshold = 5
         # self._mapPosition = (0,0)
 
-    class BroadcastFillLevel(CyclicBehaviour):
-        async def on_start(self):
-            print(f"[START] Bin Agent")
-
+    class FillLevelReporterBehaviour(CyclicBehaviour):
         async def run(self):
-            print(f"[RUN METHOD TO BE IMPLEMENTED]")
-            await asyncio.sleep(1)
-            print(f"[KILLING BIN]")
-            await asyncio.sleep(1)
-            self.kill()
-
-        async def on_end(self):
-            print(f"Behaviour finished with exit code {self.exit_code}.")
-
-    class RequestTrashExtraction(OneShotBehaviour):
-        async def run(self):
-            print("[TRASH BIN] receiving messages")
-
-            msg = await self.receive(timeout=10) # wait for a message for 10 seconds
+            msg = await self.receive(timeout=10)  # wait for a message for 10 seconds
             if msg:
-                print(f"Message received with content: {msg.body}")
-            else:
-                print("Did not received any message after 10 seconds")
-
-            # stop agent from behaviour
-            await self.agent.stop()
+                response = msg.make_reply()
+                response.body = self.agent.getCurrentTrashLevel()
+                await self.send(response)
 
     async def setup(self) -> None:
         print(f"Hello World! I'm Trash Bin <{str(self.jid)}>")
-        self.add_behaviour(self.BroadcastFillLevel())
-        self.add_behaviour(self.RequestTrashExtraction())
-    
+
+        template = Template()
+        template.metadata = {"performative": "fill_level_query"}
+        self.add_behaviour(self.FillLevelReporterBehaviour(), template)
+
     def getCurrentTrashLevel(self) -> int:
         """
         # Description
@@ -71,9 +61,9 @@ class BinAgent(Agent):
         """
         if not self.isEmpty():
             self._currentTrashLevel = 0
-    
+
     # def _checkValidTrashDeposit(self, trashFillLevel):
-    #     return self._binFillLevel + trashFillLevel <= self._maxCapacity 
+    #     return self._binFillLevel + trashFillLevel <= self._maxCapacity
 
     # def depositTrash(self, trashFillLevel):
     #     if (self._checkValidTrashDeposit(trashFillLevel)):
@@ -81,9 +71,10 @@ class BinAgent(Agent):
 
     # def get_position(self):
     #     return self._mapPosition
-    
+
     # def set_position(self, newPosition):
     #     self._mapPosition = newPosition
+
 
 async def main():
     bin = BinAgent("admin@localhost", "password", "Add_Env_Here")
@@ -91,6 +82,7 @@ async def main():
     # bin.depositTrash(10)
     print(bin.getCurrentTrashLevel())
     await bin.start()
+
 
 if __name__ == "__main__":
     spade.run(main())
