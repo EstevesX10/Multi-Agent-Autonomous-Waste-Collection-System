@@ -71,7 +71,6 @@ class Node:
 
         := return: The list of adjacent edges.
         """
-
         return self.neighbours
 
     def addAgent(self, agent:Agent) -> None:
@@ -84,7 +83,7 @@ class Node:
 
         self.agents.append(agent)
 
-    def removeAgent(self, agent):
+    def removeAgent(self, agent:Agent):
         """
         # Description
             -> Removes a given agent from the current node's contents.
@@ -100,8 +99,20 @@ class Node:
 
         := return: The list with the agents of the current node.
         """
-
         return self.agents
+
+    def performTrashExtraction(self, truckId:str, binId:str) -> None:
+        # Get the trash level of the bin
+        binTrashLevel = [agent.getCurrentTrashLevel() for agent in self.getAgents() if agent.jid == binId][0]
+
+        # Iterate through the agents
+        for agent in self.getAgents():
+            # Add the trash to the truck            
+            if agent.jid == truckId:
+                agent.addTrash(binTrashLevel)
+            # Clean the Bin
+            elif agent.jid == binId:
+                agent.cleanBin()
 
 class Graph:
     """
@@ -120,8 +131,7 @@ class Graph:
 
         self.nverts = n  # Number of vertices
         self.nedges = 0  # Number of edges
-        # Create a list of nodes (indexed from 1 to n, with position 0 unused)
-        self.verts = [Node() for _ in range(n + 1)]
+        self.verts = [Node() for _ in range(n + 1)] # list of nodes (indexed from 1 to n, with position 0 unused)
 
     def numVertices(self) -> int:
         """
@@ -197,7 +207,7 @@ class Graph:
         # Find the node to insert the agent into
         self.verts[nodeId].addAgent(agent)
 
-    def removeAgentNode(self, nodeId, agent):
+    def removeAgentNode(self, nodeId:int, agent:Agent) -> None:
         """
         # Description
             -> Removes a given agent from the node identified by the provided Node ID
@@ -206,5 +216,15 @@ class Graph:
         := param: agent - Agent to be removed.
         := return: None, since we are only removing an agent from the node.
         """
-
         self.verts[nodeId].removeAgent(agent)
+
+    def performTrashExtraction(self, nodeId:int, truckId:str, binId:str) -> None:
+        """
+        # Description
+            -> Performs trash extraction between a truck and a bin
+        
+        := param: noduleId - Nodule in which the extraction must be performed
+        := param: truckId - Identification number of the truck involved in the extraction
+        := param: binId - Identification number of the bin involved in the extraction
+        """
+        self.verts[nodeId].performTrashExtraction(truckId, binId)

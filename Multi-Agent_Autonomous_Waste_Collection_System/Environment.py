@@ -141,7 +141,6 @@ class Environment:
             print(node.getAgents())
 
     # TODO: Fix the way we are saving the agents in the environment so that we do not need to pass an instance of a Agent
-    # Maybe simply use the Agents jid's to mark the agent position
 
     def addAgent(self, nodeId:int, agent:Agent) -> None:
         # Update Truck Agents Positions
@@ -155,10 +154,20 @@ class Environment:
         # Insert the Agent into a given nodule of the network
         self.graph.addAgentNode(nodeId, agent)
 
+    def getNodeAgents(self, nodeId:int) -> list:
+        # Fetch the agents inside a given node
+        return self.graph.verts[nodeId].getAgents()
+
     def updateTruckPosition(self, oldNodePos:int, newNodePos:int, agent:Agent) -> None:
+        # Update the Truck position
         self.graph.removeAgentNode(oldNodePos, agent.jid)
         self.graph.addAgentNode(newNodePos, agent.jid)
         self.truckPositions.update({agent.jid:newNodePos})
 
-    def getTruckPosition(self, truckId):
+    def performTrashExtraction(self, nodeId:int, truckId:str, binId:str) -> None:
+        # Perfrom trash extraction between a truck and a bin
+        self.graph.performTrashExtraction(nodeId, truckId, binId)
+
+    def getTruckPosition(self, truckId:int) -> int:
+        # Get the current node, the truck is on
         return self.truckPositions[truckId]

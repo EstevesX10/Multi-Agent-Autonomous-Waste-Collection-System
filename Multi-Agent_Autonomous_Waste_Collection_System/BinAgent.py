@@ -9,33 +9,22 @@ import spade
 
 from Environment import Environment
 
-class BinAgent(Agent):
-    def __init__(
-        self,
-        jid: str,
-        password: str,
-        environment: Environment,
-        verify_security: bool = False,
-    ) -> None:
-        super().__init__(jid, password, verify_security)
-        self.env = environment
-        self._currentTrashLevel = 0  # Empty Bin
-        self._maxTrashCapacity = 30
-        self._requestTrashExtractionThreshold = 5
-        # self._mapPosition = (0,0)
+class randomTrashGenerator(PeriodicBehaviour):
+    def run(self) -> asyncio.Coroutine[asyncio.Any, asyncio.Any, None]:
+        return super().run()
 
-    class FillLevelReporterBehaviour(CyclicBehaviour):
-        async def run(self):
-            # wait for a message for 10 seconds
-            msg = await self.receive(timeout=10)
+class FillLevelReporterBehaviour(CyclicBehaviour):
+    async def run(self):
+        # wait for a message for 10 seconds
+        msg = await self.receive(timeout=10)
 
-            # Check if a message was received and send a reply with the bin's current trash level  
-            if msg:
-                print(f"{self.agent.jid}\t\t[RECEIVED MESSAGE]")
-                response = msg.make_reply()
-                response.body = str(self.agent.getCurrentTrashLevel())
-                await self.send(response)
-                print(f"{self.agent.jid}\t\t[REPLY SENT]")
+        # Check if a message was received and send a reply with the bin's current trash level  
+        if msg:
+            print(f"{self.agent.jid}\t\t[RECEIVED MESSAGE]")
+            response = msg.make_reply()
+            response.body = str(self.agent.getCurrentTrashLevel())
+            await self.send(response)
+            print(f"{self.agent.jid}\t\t[REPLY SENT]")
 
     async def setup(self) -> None:
         print(f"[SETUP] {str(self.jid)}\n")
@@ -51,6 +40,21 @@ class BinAgent(Agent):
         # self.add_behaviour(ProximitySenderBehaviour(msg, SIGNAL_STRENGTH))
 
         print(template.match(msg))
+
+class BinAgent(Agent):
+    def __init__(
+        self,
+        jid: str,
+        password: str,
+        environment: Environment,
+        verify_security: bool = False,
+    ) -> None:
+        super().__init__(jid, password, verify_security)
+        self.env = environment
+        self._currentTrashLevel = 0  # Empty Bin
+        self._maxTrashCapacity = 30
+        self._requestTrashExtractionThreshold = 5
+        # self._mapPosition = (0,0)
 
     def getCurrentTrashLevel(self) -> int:
         """
@@ -73,3 +77,10 @@ class BinAgent(Agent):
         """
         if not self.isEmpty():
             self._currentTrashLevel = 0
+
+    def removeTrash(self, trashAmount:int) -> None:
+        """
+        # Description
+            -> Removes a certain trash amount from the Bin
+        """
+        self._currentTrashLevel -= trashAmount
