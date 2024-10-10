@@ -33,7 +33,7 @@ class ProximitySenderBehaviour(CyclicBehaviour):
         self.msg = msg
         self.signal_dist = signal_dist
 
-    async def run(self):
+    def bfs(self):
         # Fetch an instance of the environment
         env: Environment = self.agent.env
 
@@ -74,10 +74,16 @@ class ProximitySenderBehaviour(CyclicBehaviour):
                 for contentAgent in content:
                     if isinstance(contentAgent, BinAgent):
                         self.msg.to = contentAgent.jid.localpart + "@" + contentAgent.jid.domain
-                        await self.send(self.msg)
+                        # await self.send(self.msg)
                         print(f"{self.agent.jid}\t[SENT A MESSAGE]")
 
             # i += 1
+
+    async def run(self):
+        # Fetch an instance of the environment
+        env: Environment = self.agent.env
+        
+        # CODE HERE
 
 class ListenerBehaviour(CyclicBehaviour):
     async def run(self):
@@ -87,7 +93,6 @@ class ListenerBehaviour(CyclicBehaviour):
             # If a message has been received, then we print it
             print(f"{self.agent.jid}\t[RECEIVED MESSAGE] : {msg.body}")
             self.target = msg.body
-
 
 class TruckAgent(Agent):
     def __init__(
@@ -108,9 +113,33 @@ class TruckAgent(Agent):
         self._fuelDepletionRate = 2 * (
             1 / self._fueltype
         )  # Constant that determines how fast the truck loses its fuel
-        self._mapPosition = 0
 
     async def setup(self):
+        # If the truck is in the same node as a bin then, we trigger a extraction behviour (?)
+        class RemoveTrash(OneShotBehaviour):
+            async def run(self):
+                print("[START REMOVE TRASH BEHAVIOUR]")
+                print("-> TO IMPLEMENT")
+
+        class TruckMovement(CyclicBehaviour):
+            async def run(self):
+                print("[START TRUCK BEHAVIOUR]")
+                # Perceive environment data
+                currentTruckPosition = self.getTruckPosition(self.agent.jid)
+
+                # <!> Perform some movement and get a new node
+                newNodePos = 1
+
+                # Update the truck position insde the Environment
+                self.agent.environment.updateTruckPosition(currentTruckPosition, newNodePos, self.agent.jid)
+
+                # Communicate with air traffic control
+                # await self.send_instruction_to_atc(truck_position)
+
+            def getTruckPosition(self):
+                # Access the environment object to retrieve the aircraft's position
+                return self.agent.environment.getTruckPosition()
+
         print(f"[SETUP] {self.jid}\n")
 
         # Setting up a listening behaviour
@@ -123,6 +152,9 @@ class TruckAgent(Agent):
         msg.set_metadata("performative", "fill_level_query")
         msg.body="bruhhhhh"
         self.add_behaviour(ProximitySenderBehaviour(msg, SIGNAL_STRENGTH))
+
+        # Setting the Truck Movement Behaviour
+        self.add_behaviour(TruckMovement())
 
     def getMaxTrashCapacity(self) -> int:
         """
@@ -151,13 +183,6 @@ class TruckAgent(Agent):
             -> Check if the truck is empty
         """
         return self.getCurrentTrashLevel() == 0
-
-    def getMapPosition(self) -> int:
-        """
-        # Description
-            -> Get the truck's node ID inside the network.
-        """
-        return self._mapPosition
 
     # ADD A CHECK FOR THE TRASH BIN AND THE TRUCK TO BE IN THE SAME POSITION INSIDE THE ENV
     def _validTrashExtraction(self, trashBin: BinAgent) -> bool:

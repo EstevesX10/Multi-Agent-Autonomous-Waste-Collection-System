@@ -12,8 +12,8 @@ import numpy as np
 
 from DataStructures import Graph
 
-# from BinAgent import (BinAgent)
-# from TruckAgent import (TruckAgent)
+from BinAgent import (BinAgent)
+from TruckAgent import (TruckAgent)
 
 @dataclass
 class Road:
@@ -43,8 +43,8 @@ class Environment:
             "./EnvironmentLayouts/Layout1.txt"
         )
         self.distanceMatrix, self.parentMatrix = self.__calculateMatrices()
-        # print(self.distanceMatrix)
-        # print(self.parentMatrix)
+        self.truckPositions = {} # {'TruckID':'NodeID'}
+        self.binPositions = {} # {'BinID':'NodeID'}
 
     def __readGraph(
         self, envConfiguration: str, verbose: bool = False
@@ -138,8 +138,27 @@ class Environment:
     def printNodes(self) -> None:
         # Loop over each node and print what contents it witholds
         for node in self.graph.verts:
-            print(node.getContents())
+            print(node.getAgents())
+
+    # TODO: Fix the way we are saving the agents in the environment so that we do not need to pass an instance of a Agent
+    # Maybe simply use the Agents jid's to mark the agent position
 
     def addAgent(self, nodeId:int, agent:Agent) -> None:
-        # Insert a Agent into a given nodule of the network
+        # Update Truck Agents Positions
+        if isinstance(agent, TruckAgent):
+            self.truckPositions.update({agent.jid:nodeId})
+
+        # Update Bin Agents Positions
+        elif isinstance(agent, BinAgent):
+            self.binPositions.update({agent.jid:nodeId})
+
+        # Insert the Agent into a given nodule of the network
         self.graph.addAgentNode(nodeId, agent)
+
+    def updateTruckPosition(self, oldNodePos:int, newNodePos:int, agent:Agent) -> None:
+        self.graph.removeAgentNode(oldNodePos, agent.jid)
+        self.graph.addAgentNode(newNodePos, agent.jid)
+        self.truckPositions.update({agent.jid:newNodePos})
+
+    def getTruckPosition(self, truckId):
+        return self.truckPositions[truckId]

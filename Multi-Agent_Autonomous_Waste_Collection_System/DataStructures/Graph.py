@@ -62,7 +62,7 @@ class Node:
         """
 
         self.neighbours = []
-        self.contents = []
+        self.agents = []
 
     def adjs(self) -> list:
         """
@@ -74,7 +74,7 @@ class Node:
 
         return self.neighbours
 
-    def addContent(self, agent:Agent) -> None:
+    def addAgent(self, agent:Agent) -> None:
         """
         # Description
             -> Inserts a given agent to the current node's contents.
@@ -82,17 +82,26 @@ class Node:
         := return: None, since we are simply introducing a new agent to the network.
         """
 
-        self.contents.append(agent)
+        self.agents.append(agent)
 
-    def getContents(self) -> list[Agent]:
+    def removeAgent(self, agent):
+        """
+        # Description
+            -> Removes a given agent from the current node's contents.
+
+        := return: None, since we are simply removing a existing agent from the network.
+        """
+        self.agents.remove(agent)
+
+    def getAgents(self) -> list[Agent]:
         """
         # Description
             -> Returns the list with the Agents inside the current node.
 
-        := return: The list with the contents of the current node.
+        := return: The list with the agents of the current node.
         """
 
-        return self.contents
+        return self.agents
 
 class Graph:
     """
@@ -186,4 +195,16 @@ class Graph:
         """
 
         # Find the node to insert the agent into
-        self.verts[nodeId].addContent(agent)
+        self.verts[nodeId].addAgent(agent)
+
+    def removeAgentNode(self, nodeId, agent):
+        """
+        # Description
+            -> Removes a given agent from the node identified by the provided Node ID
+
+        := param: nodeId - Vertex in which we pretend to remove the Agent.
+        := param: agent - Agent to be removed.
+        := return: None, since we are only removing an agent from the node.
+        """
+
+        self.verts[nodeId].removeAgent(agent)

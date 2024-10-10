@@ -73,16 +73,3 @@ class BinAgent(Agent):
         """
         if not self.isEmpty():
             self._currentTrashLevel = 0
-
-    # def _checkValidTrashDeposit(self, trashFillLevel):
-    #     return self._binFillLevel + trashFillLevel <= self._maxCapacity
-
-    # def depositTrash(self, trashFillLevel):
-    #     if (self._checkValidTrashDeposit(trashFillLevel)):
-    #         self._binFillLevel += trashFillLevel
-
-    # def get_position(self):
-    #     return self._mapPosition
-
-    # def set_position(self, newPosition):
-    #     self._mapPosition = newPosition
