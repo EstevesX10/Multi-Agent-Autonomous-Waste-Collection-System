@@ -19,28 +19,28 @@ async def main():
     
     # Insert the Agents into the environment
     env.addAgent(nodeId=0, agent=truck1)
-    env.addAgent(nodeId=1, agent=bin1)
+    env.addAgent(nodeId=0, agent=bin1)
     # env.addAgent(nodeId=1, agent=bin2)
 
     # Print the agents per nodes of the network
     print(env.getAgentsDistribution())
 
-    return
+    # return
+
+    # print(bin1.getCurrentTrashLevel())
 
     # Wait for the Agents to Start
-    await bin.start(auto_register=True)
-    await truck.start(auto_register=True)
+    await bin1.start(auto_register=True)
+    await truck1.start(auto_register=True)
 
     # #start recording the environment for further display
     # hub1.add_behaviour(HubAgent.RecordPosition(period=0.2))
     # await hub1.spawn_package(0,3)
-    bin.stop()
-    truck.stop()
 
-    await spade.wait_until_finished(bin)
-    await bin.stop()
+    # await spade.wait_until_finished(bin1)
+    # await bin1.stop()
     # print("drone1 agent has stoped")
-    await spade.wait_until_finished(truck)
+    # await spade.wait_until_finished(truck1)
 
 if __name__ == "__main__":
     spade.run(main())

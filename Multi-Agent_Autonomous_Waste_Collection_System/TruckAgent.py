@@ -87,6 +87,9 @@ class ProximitySenderBehaviour(CyclicBehaviour):
 """
 
 class ListenerBehaviour(CyclicBehaviour):
+    async def on_start(self):
+        print("[START TRUCK LISTENER BEHAVIOUR]")
+
     async def run(self):
         # wait for a message for 10 seconds
         msg = await self.receive(timeout=10)
@@ -95,32 +98,42 @@ class ListenerBehaviour(CyclicBehaviour):
             print(f"{self.agent.jid}\t[RECEIVED MESSAGE] : {msg.body}")
             self.target = msg.body
 
-# If the truck is in the same node as a bin then, we trigger a extraction behviour (?)
-class RemoveTrash(OneShotBehaviour):
-    async def run(self):
-        print("[START REMOVE TRASH BEHAVIOUR]")
-        # Get the current Truck Node
-        currentNode = self.agent.env.truckPositions[self.agent.jid.localpart]
+class RequestTrashBehaviour(CyclicBehaviour):
+        async def run(self):
+            # Create a message requesting trash from the bin
+            msg = Message(to="bin1@localhost")  # The trash bin agent's address
+            msg.body = "Requesting trash collection"
+            await self.send(msg)
+            print(f"[{self.agent.jid.localpart}] Sent trash request to the bin.")
 
-        # Get agents inside the same node of the network
-        availableAgents = self.agent.env.getNodeAgents(currentNode)
-
-        # Go trough each one of the available agents in the current node
-        for nodeAgent in availableAgents:
-            if isinstance(nodeAgent, BinAgent):
-                # Check for a valid trash extraction
-                if self.agent._validTrashExtraction(nodeAgent):
-                    # Remove the trash from the bin onto the truck
-                    self.agent.env.performTrashExtraction(currentNode, nodeAgent.jid.localpart, self.agent.jid.localpart)
+            # Wait for the bin's response
+            response = await self.receive(timeout=10)  # 10-second timeout
+            if response:
+                print(f"[{self.agent.jid.localpart}] Received response from bin: {response.body}")
+                
+                # Simulate collecting trash
+                trashCollected = int(response.body)  # Assuming the bin sends the amount of trash
+                self.agent.updateTrashLevel(self.agent.getCurrentTrashLevel() + trashCollected)
+                print(f"[{self.agent.jid.localpart}] Collected {trashCollected} units of trash. Total now: {self.agent.getCurrentTrashLevel()} units.")
+                
+                # Send confirmation to the bin
+                confirm_msg = Message(to="bin1@localhost")
+                confirm_msg.body = f"Collected {trashCollected} units"
+                await self.send(confirm_msg)
+                print(f"[{self.agent.jid.localpart}] Sent confirmation of collection to the bin.")
+            else:
+                print(f"[{self.agent.jid.localpart}] No response from bin.")
 
 class TruckMovement(CyclicBehaviour):
-    async def run(self):
+    async def on_start(self) -> None:
         print("[START TRUCK BEHAVIOUR]")
+
+    async def run(self):
         # Perceive environment data
         currentTruckPosition = self._getTruckPosition()
 
         # <TODO> Perform some movement and get a new node
-        newNodePos = 1
+        newNodePos = 0
 
         # Update the truck position insde the Environment
         self.agent.env.updateTruckPosition(currentTruckPosition, newNodePos, self.agent.jid.localpart)
@@ -170,7 +183,7 @@ class TruckAgent(Agent):
         self.add_behaviour(TruckMovement())
 
         # Add an extraction behaviour
-        self.add_behaviour(RemoveTrash())
+        self.add_behaviour(RequestTrashBehaviour())
 
     def getMaxTrashCapacity(self) -> int:
         """
@@ -200,12 +213,12 @@ class TruckAgent(Agent):
         """
         return self.getCurrentTrashLevel() == 0
 
-    def addTrash(self, trashAmount:int) -> None:
+    def updateTrashLevel(self, newTrashLevel:int) -> None:
         """
         # Description
-            -> Adds a certain amount of trash to the Truck
+            -> Updates the currunt amount of trash in the Truck
         """
-        self._currentTrashLevel += trashAmount
+        self._currentTrashLevel = newTrashLevel
     
     def removeTrash(self, trashAmount:int) -> None:
         """
