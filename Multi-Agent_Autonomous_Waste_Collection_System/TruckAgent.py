@@ -26,63 +26,65 @@ class PickUpBehaviour(OneShotBehaviour):
     async def on_end(self):
         print(f"Behaviour finished with exit code {self.exit_code}.")
 
-# class ProximitySenderBehaviour(CyclicBehaviour):
-#     def __init__(self, msg: Message, signal_dist: float):
-#         super().__init__()
-#         self.msg = msg
-#         self.signal_dist = signal_dist
+"""
+class ProximitySenderBehaviour(CyclicBehaviour):
+    def __init__(self, msg: Message, signal_dist: float):
+        super().__init__()
+        self.msg = msg
+        self.signal_dist = signal_dist
 
-#     def bfs(self):
-#         # Fetch an instance of the environment
-#         env: Environment = self.agent.env
+    def bfs(self):
+        # Fetch an instance of the environment
+        env: Environment = self.agent.env
 
-#         # Initialize a queue with the current agent's position and the current depth of the search given the node (used to perfrom BFS)
-#         nodes = [(self.agent.getMapPosition(), 0)]
+        # Initialize a queue with the current agent's position and the current depth of the search given the node (used to perfrom BFS)
+        nodes = [(self.agent.getMapPosition(), 0)]
 
-#         # Initialize a visited array to keep track of the already visited nodes
-#         visited = [False] * env.numberNodes
-#         # i = 0
+        # Initialize a visited array to keep track of the already visited nodes
+        visited = [False] * env.numberNodes
+        # i = 0
 
-#         # While we still have elements to analyse (aka inside the queue)
-#         while len(nodes) != 0:
-#             # Pop the next node to be analysed
-#             node, depth = nodes.pop()
+        # While we still have elements to analyse (aka inside the queue)
+        while len(nodes) != 0:
+            # Pop the next node to be analysed
+            node, depth = nodes.pop()
 
-#             # Update its visited state on the previous array
-#             visited[node] = True
+            # Update its visited state on the previous array
+            visited[node] = True
 
-#             # Check if the search has gone beyond the depth limited defined
-#             if depth >= self.signal_dist:
-#                 continue
+            # Check if the search has gone beyond the depth limited defined
+            if depth >= self.signal_dist:
+                continue
             
-#             # Iterate through the adjacent nodes
-#             for edge in env.graph.adjsNodes(node):
-#                 n = edge.endnode()
+            # Iterate through the adjacent nodes
+            for edge in env.graph.adjsNodes(node):
+                n = edge.endnode()
                 
-#                 # If the current adjacent node has already been visited, then we check the next
-#                 if visited[n]:
-#                     continue
+                # If the current adjacent node has already been visited, then we check the next
+                if visited[n]:
+                    continue
                 
-#                 # Add the new unvisited node to the queue alongside its depth
-#                 nodes.append((n, depth + edge.value.getDistance()))
+                # Add the new unvisited node to the queue alongside its depth
+                nodes.append((n, depth + edge.value.getDistance()))
 
-#                 # Fetch the agents inside the current adjacent node
-#                 content = env.graph.verts[n].getContents()
+                # Fetch the agents inside the current adjacent node
+                content = env.graph.verts[n].getContents()
                 
-#                 # For each agent inside the current adjacent node, we send it a message
-#                 for contentAgent in content:
-#                     if isinstance(contentAgent, BinAgent):
-#                         self.msg.to = contentAgent.jid.localpart + "@" + contentAgent.jid.domain
-#                         # await self.send(self.msg)
-#                         print(f"{self.agent.jid}\t[SENT A MESSAGE]")
+                # For each agent inside the current adjacent node, we send it a message
+                for contentAgent in content:
+                    if isinstance(contentAgent, BinAgent):
+                        self.msg.to = contentAgent.jid.localpart + "@" + contentAgent.jid.domain
+                        # await self.send(self.msg)
+                        print(f"{self.agent.jid}\t[SENT A MESSAGE]")
 
-#             # i += 1
+            # i += 1
 
-#     async def run(self):
-#         # Fetch an instance of the environment
-#         env: Environment = self.agent.env
+    async def run(self):
+        # Fetch an instance of the environment
+        env: Environment = self.agent.env
         
-#         # CODE HERE
+        # CODE HERE
+"""
 
 class ListenerBehaviour(CyclicBehaviour):
     async def run(self):
@@ -98,10 +100,10 @@ class RemoveTrash(OneShotBehaviour):
     async def run(self):
         print("[START REMOVE TRASH BEHAVIOUR]")
         # Get the current Truck Node
-        currentNode = self.agent.environment.truckPositions[self.agent.jid]
+        currentNode = self.agent.env.truckPositions[self.agent.jid.localpart]
 
         # Get agents inside the same node of the network
-        availableAgents = self.agent.environment.getNodeAgents(currentNode)
+        availableAgents = self.agent.env.getNodeAgents(currentNode)
 
         # Go trough each one of the available agents in the current node
         for nodeAgent in availableAgents:
@@ -109,26 +111,26 @@ class RemoveTrash(OneShotBehaviour):
                 # Check for a valid trash extraction
                 if self.agent._validTrashExtraction(nodeAgent):
                     # Remove the trash from the bin onto the truck
-                    self.agent.environment.performTrashExtraction(currentNode, nodeAgent.jid, self.agent.jid)
+                    self.agent.env.performTrashExtraction(currentNode, nodeAgent.jid.localpart, self.agent.jid.localpart)
 
 class TruckMovement(CyclicBehaviour):
     async def run(self):
         print("[START TRUCK BEHAVIOUR]")
         # Perceive environment data
-        currentTruckPosition = self.getTruckPosition(self.agent.jid)
+        currentTruckPosition = self._getTruckPosition()
 
         # <TODO> Perform some movement and get a new node
         newNodePos = 1
 
         # Update the truck position insde the Environment
-        self.agent.environment.updateTruckPosition(currentTruckPosition, newNodePos, self.agent.jid)
+        self.agent.env.updateTruckPosition(currentTruckPosition, newNodePos, self.agent.jid.localpart)
 
         # Communicate with air traffic control
         # await self.send_instruction_to_atc(truck_position)
 
-    def getTruckPosition(self):
-        # Access the environment object to retrieve the aircraft's position
-        return self.agent.environment.getTruckPosition()
+    def _getTruckPosition(self):
+        # Access the environment object to retrieve the truck position
+        return self.agent.env.getTruckPosition(self.agent.jid.localpart)
 
 class TruckAgent(Agent):
     def __init__(

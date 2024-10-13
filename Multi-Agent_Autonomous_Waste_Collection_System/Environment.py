@@ -12,8 +12,8 @@ import numpy as np
 
 from DataStructures import Graph
 
-from BinAgent import (BinAgent)
-from TruckAgent import (TruckAgent)
+# from BinAgent import (BinAgent)
+# from TruckAgent import (TruckAgent)
 
 @dataclass
 class Road:
@@ -135,39 +135,52 @@ class Environment:
 
         return distanceMatrix, parentMatrix
 
-    def printNodes(self) -> None:
-        # Loop over each node and print what contents it witholds
-        for node in self.graph.verts:
-            print(node.getAgents())
+    def getAgentsDistribution(self) -> dict:
+        # Initialize a dictionary for the agents within each node
+        nodes = {}
+        
+        # Loop over each node and get what contents it witholds
+        for idx, node in enumerate(self.graph.verts):
+            nodes.update({f'Node {idx}':node.getAgents()})
+        
+        return nodes
 
-    # TODO: Fix the way we are saving the agents in the environment so that we do not need to pass an instance of a Agent
+    def printPositions(self):
+        # Printing the dictionaries with the agents positions in the graph
+        print(self.truckPositions)
+        print(self.binPositions)
 
     def addAgent(self, nodeId:int, agent:Agent) -> None:
+        # Check if the agent already exists
+        if agent.jid.localpart in list(self.truckPositions.keys()) + list(self.binPositions.keys()):
+            print(f"[Invalid Agent] {agent.jid.localpart} - Agent already in the environment!")
+            return
+
         # Update Truck Agents Positions
-        if isinstance(agent, TruckAgent):
-            self.truckPositions.update({agent.jid:nodeId})
+        if 'truck' in agent.jid.localpart:
+            self.truckPositions.update({agent.jid.localpart:nodeId})
 
         # Update Bin Agents Positions
-        elif isinstance(agent, BinAgent):
-            self.binPositions.update({agent.jid:nodeId})
+        elif 'bin' in agent.jid.localpart:
+            self.binPositions.update({agent.jid.localpart:nodeId})
 
         # Insert the Agent into a given nodule of the network
-        self.graph.addAgentNode(nodeId, agent)
+        self.graph.addAgentNode(nodeId, agent.jid.localpart)
 
     def getNodeAgents(self, nodeId:int) -> list:
         # Fetch the agents inside a given node
         return self.graph.verts[nodeId].getAgents()
 
-    def updateTruckPosition(self, oldNodePos:int, newNodePos:int, agent:Agent) -> None:
+    def updateTruckPosition(self, oldNodePos:int, newNodePos:int, agentId:str) -> None:
         # Update the Truck position
-        self.graph.removeAgentNode(oldNodePos, agent.jid)
-        self.graph.addAgentNode(newNodePos, agent.jid)
-        self.truckPositions.update({agent.jid:newNodePos})
+        self.graph.removeAgentNode(oldNodePos, agentId)
+        self.graph.addAgentNode(newNodePos, agentId)
+        self.truckPositions.update({agentId:newNodePos})
 
     def performTrashExtraction(self, nodeId:int, truckId:str, binId:str) -> None:
         # Perfrom trash extraction between a truck and a bin
         self.graph.performTrashExtraction(nodeId, truckId, binId)
 
-    def getTruckPosition(self, truckId:int) -> int:
+    def getTruckPosition(self, truckId:str) -> int:
         # Get the current node, the truck is on
         return self.truckPositions[truckId]
