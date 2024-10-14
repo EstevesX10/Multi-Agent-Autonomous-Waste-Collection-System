@@ -3,7 +3,7 @@
 </div>
 
 <p align="center" width="100%">
-    <img src="./Multi-Agent Autonomous Waste Collection System/Assets/GarbageMan.png" width="55%" height="55%" alt="Multi-Agent Autonomous Waste Collection System"/>
+    <img src="./Multi-Agent_Autonomous_Waste_Collection_System/Assets/GarbageMan.png" width="55%" height="55%" alt="Multi-Agent Autonomous Waste Collection System"/>
 </p>
 
 <div align="center">
