@@ -100,29 +100,41 @@ class ListenerBehaviour(CyclicBehaviour):
 
 class RequestTrashBehaviour(CyclicBehaviour):
         async def run(self):
-            # Create a message requesting trash from the bin
-            msg = Message(to="bin1@localhost")  # The trash bin agent's address
-            msg.body = "Requesting trash collection"
-            await self.send(msg)
-            print(f"[{self.agent.jid.localpart}] Sent trash request to the bin.")
+            # Get the current node of the truck
+            truckCurrentNode = self.agent.env.truckPositions[self.agent.jid.localpart]
 
-            # Wait for the bin's response
-            response = await self.receive(timeout=10)  # 10-second timeout
-            if response:
-                print(f"[{self.agent.jid.localpart}] Received response from bin: {response.body}")
+            # Get the bins which are inside the same node in the graph
+            availableBins = [key for (key, value) in self.agent.env.binPositions.items() if value == truckCurrentNode]
+
+            # Go through all the truck's available bins
+            for availableBin in availableBins:
+
+                # <TODO: NOT SURE IF I SHOULD BE DOING THIS> Check if the available bin contains trash and if so, let's communicate
                 
-                # Simulate collecting trash
-                trashCollected = int(response.body)  # Assuming the bin sends the amount of trash
-                self.agent.updateTrashLevel(self.agent.getCurrentTrashLevel() + trashCollected)
-                print(f"[{self.agent.jid.localpart}] Collected {trashCollected} units of trash. Total now: {self.agent.getCurrentTrashLevel()} units.")
-                
-                # Send confirmation to the bin
-                confirm_msg = Message(to="bin1@localhost")
-                confirm_msg.body = f"Collected {trashCollected} units"
-                await self.send(confirm_msg)
-                print(f"[{self.agent.jid.localpart}] Sent confirmation of collection to the bin.")
-            else:
-                print(f"[{self.agent.jid.localpart}] No response from bin.")
+                if not self.agent.env.agents[availableBin].isEmpty():
+                    # Create a message requesting trash from the bin
+                    msg = Message(to=f"{availableBin}@localhost")  # The trash bin agent's address
+                    msg.body = "Requesting trash collection"
+                    await self.send(msg)
+                    print(f"[{self.agent.jid.localpart}] Sent trash request to the bin.")
+
+                    # Wait for the bin's response
+                    response = await self.receive(timeout=10)  # 10-second timeout
+                    if response:
+                        print(f"[{self.agent.jid.localpart}] Received response from bin: {response.body}")
+                        
+                        # Simulate collecting trash
+                        trashCollected = int(response.body)  # Assuming the bin sends the amount of trash
+                        self.agent.updateTrashLevel(self.agent.getCurrentTrashLevel() + trashCollected)
+                        print(f"[{self.agent.jid.localpart}] Collected {trashCollected} units of trash. Total now: {self.agent.getCurrentTrashLevel()} units.")
+                        
+                        # Send confirmation to the bin
+                        confirm_msg = Message(to=f"{availableBin}@localhost")
+                        confirm_msg.body = f"Collected {trashCollected} units"
+                        await self.send(confirm_msg)
+                        print(f"[{self.agent.jid.localpart}] Sent confirmation of collection to the bin.")
+                    else:
+                        print(f"[{self.agent.jid.localpart}] No response from bin.")
 
 class TruckMovement(CyclicBehaviour):
     async def on_start(self) -> None:

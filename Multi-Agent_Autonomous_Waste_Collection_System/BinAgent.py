@@ -24,8 +24,11 @@ class GenerateTrashBehaviour(PeriodicBehaviour):
 
 class ProvideTrashBehaviour(CyclicBehaviour):
         async def run(self):
+            # If the bin is not empty
             msg = await self.receive(timeout=10)  # Wait for request message from the truck
-            if msg:
+            
+            # Only if we received a request from the Truck and if the bin contains trash, we perform trash extraction
+            if msg and not self.agent.isEmpty():
                 print(f"[{self.agent.jid.localpart}] Received request: {msg.body}")
 
                 # Get Available trash

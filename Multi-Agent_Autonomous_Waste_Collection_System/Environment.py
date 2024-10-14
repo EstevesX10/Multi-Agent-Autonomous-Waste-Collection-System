@@ -45,6 +45,7 @@ class Environment:
         self.distanceMatrix, self.parentMatrix = self.__calculateMatrices()
         self.truckPositions = {} # {'TruckID':'NodeID'}
         self.binPositions = {} # {'BinID':'NodeID'}
+        self.agents = {} # {'AgentID': 'Agent Object'} - CAN I DO THIS??
 
     def __readGraph(
         self, envConfiguration: str, verbose: bool = False
@@ -166,6 +167,9 @@ class Environment:
 
         # Insert the Agent into a given nodule of the network
         self.graph.addAgentNode(nodeId, agent.jid.localpart)
+
+        # Save the agent instance
+        self.agents.update({agent.jid.localpart:agent})
 
     def getNodeAgents(self, nodeId:int) -> list:
         # Fetch the agents inside a given node
