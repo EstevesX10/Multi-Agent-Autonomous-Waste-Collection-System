@@ -5,9 +5,11 @@ from spade.template import Template
 from spade.message import Message
 import asyncio
 import spade
+import random
 
 from Environment import Environment
 from BinAgent import BinAgent
+from SuperAgent import SuperAgent
 
 SIGNAL_STRENGTH = 10
 
@@ -120,9 +122,7 @@ class RequestTrashBehaviour(CyclicBehaviour):
 
             if not self.agent.env.agents[availableBin].isEmpty():
                 # Create a message requesting trash from the bin
-                msg = Message(
-                    to=f"{availableBin}@localhost"
-                )  # The trash bin agent's address
+                msg = Message(to=availableBin)  # The trash bin agent's address
                 msg.body = "Requesting trash collection"
                 await self.send(msg)
                 print(f"[{str(self.agent.jid)}] Sent trash request to the bin.")
@@ -146,7 +146,7 @@ class RequestTrashBehaviour(CyclicBehaviour):
                     )
 
                     # Send confirmation to the bin
-                    confirm_msg = Message(to=f"{availableBin}@localhost")
+                    confirm_msg = Message(to=availableBin)
                     confirm_msg.body = f"Collected {trashCollected} units"
                     await self.send(confirm_msg)
                     print(
@@ -180,7 +180,92 @@ class TruckMovement(CyclicBehaviour):
         return self.agent.env.getTruckPosition(str(self.agent.jid))
 
 
-class TruckAgent(Agent):
+class ManagerBehaviour(CyclicBehaviour):
+    # TODO: better heuristic
+    def choose_bin(self):
+        bins = {}
+        for jid, agent in self.agent.env.agents.items():
+            if isinstance(agent, BinAgent):
+                bins[jid] = agent.getCurrentTrashLevel()
+
+        choosen = max(bins.keys(), key=bins.__getitem__)
+        return choosen
+
+    async def run(self):
+        bin = self.choose_bin()
+        msg = Message(
+            metadata={"performative": "query"},
+            body=bin,
+        )
+        peers = await self.agent.broadcast(msg, TruckAgent, self)
+
+        resp = await self.receive(timeout=10)
+        if not resp:
+            print(f"Manager {self.agent.jid} got no replies")
+            return
+
+        costs = {}
+        times = {}
+        cost, time = resp.body.split()
+        costs[resp.sender] = cost
+        times[resp.sender] = time
+        for _ in range(len(peers) - 1):
+            resp = await self.receive(timeout=10)
+            cost, time = resp.body.split()
+            costs[resp.sender] = cost
+            times[resp.sender] = time
+
+        choosen = min(costs.keys(), key=costs.__getitem__)
+
+        msg = Message(
+            to=str(choosen),
+            metadata={"performative": "request"},
+            body=f"{bin} {times[choosen]}",
+        )
+        await self.send(msg)
+
+
+class AssigneeBehaviour(CyclicBehaviour):
+    time: int = 0
+
+    # TODO: this
+    def calculate_cost(self, bin):
+        return random.random()
+
+    async def run(self):
+        req = await self.receive(timeout=999)
+        if not req:
+            # Request timed out
+            return
+
+        if req.metadata["performative"] == "query":
+            # Reply with the cost
+            print(f"Got query from {req.sender}")
+            cost = self.calculate_cost(req.body)
+
+            resp = req.make_reply()
+            resp.metadata = {"performative": "inform"}
+            resp.body = f"{cost} {self.time}"
+            await self.send(resp)
+        elif req.metadata["performative"] == "request":
+            # Add new task
+            bin, time = req.body.split()
+            if int(time) >= self.time:
+                # Request is valid
+                # TODO: add task
+                print(f"{self.agent.jid} accepted {bin}")
+
+                # TODO: maybe the manager should kill himself?
+                for behaviour in self.agent.behaviours:
+                    if isinstance(behaviour, ManagerBehaviour):
+                        self.agent.remove_behaviour(ManagerBehaviour)
+                        print(f"Removed Manager from {self.agent.jid}")
+                self.time += 1
+        else:
+            print(f"Unexpected performative {req.performative}")
+
+
+class TruckAgent(SuperAgent):
     def __init__(
         self,
         jid: str,
@@ -206,7 +291,7 @@ class TruckAgent(Agent):
         # Setting up a listening behaviour
         template = Template()
         template.set_metadata("performative", "fill_level_query")
-        self.add_behaviour(ListenerBehaviour(), template)
+        # self.add_behaviour(ListenerBehaviour(), template)
 
         # Setting up a Proximity sender behaviour
         # msg = Message()
@@ -215,10 +300,20 @@ class TruckAgent(Agent):
         # self.add_behaviour(ProximitySenderBehaviour(msg, SIGNAL_STRENGTH))
 
         # Setting the Truck Movement Behaviour
-        self.add_behaviour(TruckMovement())
+        # self.add_behaviour(TruckMovement())
 
         # Add an extraction behaviour
-        self.add_behaviour(RequestTrashBehaviour())
+        # self.add_behaviour(RequestTrashBehaviour())
+
+        template = Template()
+        template.set_metadata("performative", "inform")
+        self.add_behaviour(ManagerBehaviour(), template)
+
+        template = Template()
+        template.set_metadata("performative", "query")
+        template2 = Template()
+        template2.set_metadata("performative", "request")
+        self.add_behaviour(AssigneeBehaviour(), template | template2)
 
     def getMaxTrashCapacity(self) -> int:
         """

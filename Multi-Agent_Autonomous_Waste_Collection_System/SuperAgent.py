@@ -8,10 +8,11 @@ from Environment import Environment
 class SuperAgent(Agent):
     env: Environment
 
-    def broadcast(self, msg: Message, type: Type) -> List[str]:
+    async def broadcast(self, msg: Message, type: Type, behaviour: CyclicBehaviour) -> List[str]:
         peers = []
         for jid, agent in self.env.agents.items():
             if isinstance(agent, type):
                 msg.to = jid
+                await behaviour.send(msg)
                 peers.append(jid)
         return peers
