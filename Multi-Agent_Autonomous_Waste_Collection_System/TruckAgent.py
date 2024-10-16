@@ -11,6 +11,7 @@ from BinAgent import BinAgent
 
 SIGNAL_STRENGTH = 10
 
+
 class PickUpBehaviour(OneShotBehaviour):
     async def on_start(self, target):
         print(f"Truck moving to {target}")
@@ -25,6 +26,7 @@ class PickUpBehaviour(OneShotBehaviour):
 
     async def on_end(self):
         print(f"Behaviour finished with exit code {self.exit_code}.")
+
 
 """
 class ProximitySenderBehaviour(CyclicBehaviour):
@@ -55,21 +57,21 @@ class ProximitySenderBehaviour(CyclicBehaviour):
             # Check if the search has gone beyond the depth limited defined
             if depth >= self.signal_dist:
                 continue
-            
+
             # Iterate through the adjacent nodes
             for edge in env.graph.adjsNodes(node):
                 n = edge.endnode()
-                
+
                 # If the current adjacent node has already been visited, then we check the next
                 if visited[n]:
                     continue
-                
+
                 # Add the new unvisited node to the queue alongside its depth
                 nodes.append((n, depth + edge.value.getDistance()))
 
                 # Fetch the agents inside the current adjacent node
                 content = env.graph.verts[n].getContents()
-                
+
                 # For each agent inside the current adjacent node, we send it a message
                 for contentAgent in content:
                     if isinstance(contentAgent, BinAgent):
@@ -82,9 +84,10 @@ class ProximitySenderBehaviour(CyclicBehaviour):
     async def run(self):
         # Fetch an instance of the environment
         env: Environment = self.agent.env
-        
+
         # CODE HERE
 """
+
 
 class ListenerBehaviour(CyclicBehaviour):
     async def on_start(self):
@@ -98,43 +101,60 @@ class ListenerBehaviour(CyclicBehaviour):
             print(f"{self.agent.jid}\t[RECEIVED MESSAGE] : {msg.body}")
             self.target = msg.body
 
+
 class RequestTrashBehaviour(CyclicBehaviour):
-        async def run(self):
-            # Get the current node of the truck
-            truckCurrentNode = self.agent.env.truckPositions[self.agent.jid.localpart]
+    async def run(self):
+        # Get the current node of the truck
+        truckCurrentNode = self.agent.env.truckPositions[str(self.agent.jid)]
 
-            # Get the bins which are inside the same node in the graph
-            availableBins = [key for (key, value) in self.agent.env.binPositions.items() if value == truckCurrentNode]
+        # Get the bins which are inside the same node in the graph
+        availableBins = [
+            key
+            for (key, value) in self.agent.env.binPositions.items()
+            if value == truckCurrentNode
+        ]
 
-            # Go through all the truck's available bins
-            for availableBin in availableBins:
+        # Go through all the truck's available bins
+        for availableBin in availableBins:
+            # <TODO: NOT SURE IF I SHOULD BE DOING THIS> Check if the available bin contains trash and if so, let's communicate
 
-                # <TODO: NOT SURE IF I SHOULD BE DOING THIS> Check if the available bin contains trash and if so, let's communicate
-                
-                if not self.agent.env.agents[availableBin].isEmpty():
-                    # Create a message requesting trash from the bin
-                    msg = Message(to=f"{availableBin}@localhost")  # The trash bin agent's address
-                    msg.body = "Requesting trash collection"
-                    await self.send(msg)
-                    print(f"[{self.agent.jid.localpart}] Sent trash request to the bin.")
+            if not self.agent.env.agents[availableBin].isEmpty():
+                # Create a message requesting trash from the bin
+                msg = Message(
+                    to=f"{availableBin}@localhost"
+                )  # The trash bin agent's address
+                msg.body = "Requesting trash collection"
+                await self.send(msg)
+                print(f"[{str(self.agent.jid)}] Sent trash request to the bin.")
 
-                    # Wait for the bin's response
-                    response = await self.receive(timeout=10)  # 10-second timeout
-                    if response:
-                        print(f"[{self.agent.jid.localpart}] Received response from bin: {response.body}")
-                        
-                        # Simulate collecting trash
-                        trashCollected = int(response.body)  # Assuming the bin sends the amount of trash
-                        self.agent.updateTrashLevel(self.agent.getCurrentTrashLevel() + trashCollected)
-                        print(f"[{self.agent.jid.localpart}] Collected {trashCollected} units of trash. Total now: {self.agent.getCurrentTrashLevel()} units.")
-                        
-                        # Send confirmation to the bin
-                        confirm_msg = Message(to=f"{availableBin}@localhost")
-                        confirm_msg.body = f"Collected {trashCollected} units"
-                        await self.send(confirm_msg)
-                        print(f"[{self.agent.jid.localpart}] Sent confirmation of collection to the bin.")
-                    else:
-                        print(f"[{self.agent.jid.localpart}] No response from bin.")
+                # Wait for the bin's response
+                response = await self.receive(timeout=10)  # 10-second timeout
+                if response:
+                    print(
+                        f"[{str(self.agent.jid)}] Received response from bin: {response.body}"
+                    )
+
+                    # Simulate collecting trash
+                    trashCollected = int(
+                        response.body
+                    )  # Assuming the bin sends the amount of trash
+                    self.agent.updateTrashLevel(
+                        self.agent.getCurrentTrashLevel() + trashCollected
+                    )
+                    print(
+                        f"[{str(self.agent.jid)}] Collected {trashCollected} units of trash. Total now: {self.agent.getCurrentTrashLevel()} units."
+                    )
+
+                    # Send confirmation to the bin
+                    confirm_msg = Message(to=f"{availableBin}@localhost")
+                    confirm_msg.body = f"Collected {trashCollected} units"
+                    await self.send(confirm_msg)
+                    print(
+                        f"[{str(self.agent.jid)}] Sent confirmation of collection to the bin."
+                    )
+                else:
+                    print(f"[{str(self.agent.jid)}] No response from bin.")
+
 
 class TruckMovement(CyclicBehaviour):
     async def on_start(self) -> None:
@@ -148,14 +168,17 @@ class TruckMovement(CyclicBehaviour):
         newNodePos = 0
 
         # Update the truck position insde the Environment
-        self.agent.env.updateTruckPosition(currentTruckPosition, newNodePos, self.agent.jid.localpart)
+        self.agent.env.updateTruckPosition(
+            currentTruckPosition, newNodePos, str(self.agent.jid)
+        )
 
         # Communicate with air traffic control
         # await self.send_instruction_to_atc(truck_position)
 
     def _getTruckPosition(self):
         # Access the environment object to retrieve the truck position
-        return self.agent.env.getTruckPosition(self.agent.jid.localpart)
+        return self.agent.env.getTruckPosition(str(self.agent.jid))
+
 
 class TruckAgent(Agent):
     def __init__(
@@ -225,14 +248,14 @@ class TruckAgent(Agent):
         """
         return self.getCurrentTrashLevel() == 0
 
-    def updateTrashLevel(self, newTrashLevel:int) -> None:
+    def updateTrashLevel(self, newTrashLevel: int) -> None:
         """
         # Description
             -> Updates the currunt amount of trash in the Truck
         """
         self._currentTrashLevel = newTrashLevel
-    
-    def removeTrash(self, trashAmount:int) -> None:
+
+    def removeTrash(self, trashAmount: int) -> None:
         """
         # Description
             -> Removes a certain amount of trash from the Truck

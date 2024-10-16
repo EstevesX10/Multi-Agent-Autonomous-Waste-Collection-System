@@ -1,5 +1,6 @@
 from spade.agent import Agent
 
+
 class Edge:
     """
     Class representing an edge in a graph.
@@ -49,6 +50,7 @@ class Edge:
 
         self.value = v
 
+
 class Node:
     """
     Class representing a node in a graph.
@@ -73,7 +75,7 @@ class Node:
         """
         return self.neighbours
 
-    def addAgent(self, agentId:str) -> None:
+    def addAgent(self, agentId: str) -> None:
         """
         # Description
             -> Inserts a given agent to the current node's contents.
@@ -83,7 +85,7 @@ class Node:
 
         self.agents.append(agentId)
 
-    def removeAgent(self, agentId:str):
+    def removeAgent(self, agentId: str):
         """
         # Description
             -> Removes a given agent from the current node's contents.
@@ -104,18 +106,23 @@ class Node:
         """
         return self.agents
 
-    def performTrashExtraction(self, truckId:str, binId:str) -> None:
+    def performTrashExtraction(self, truckId: str, binId: str) -> None:
         # Get the trash level of the bin
-        binTrashLevel = [agent.getCurrentTrashLevel() for agent in self.getAgents() if agent.jid.localpart == binId][0]
+        binTrashLevel = [
+            agent.getCurrentTrashLevel()
+            for agent in self.getAgents()
+            if str(agent.jid) == binId
+        ][0]
 
         # Iterate through the agents
         for agent in self.getAgents():
-            # Add the trash to the truck            
-            if agent.jid.localpart == truckId:
+            # Add the trash to the truck
+            if str(agent.jid) == truckId:
                 agent.addTrash(binTrashLevel)
             # Clean the Bin
-            elif agent.jid.localpart == binId:
+            elif str(agent.jid) == binId:
                 agent.cleanBin()
+
 
 class Graph:
     """
@@ -134,7 +141,9 @@ class Graph:
 
         self.nverts = n  # Number of vertices
         self.nedges = 0  # Number of edges
-        self.verts = [Node() for _ in range(n)] # list of nodes (indexed from 1 to n, with position 0 unused)
+        self.verts = [
+            Node() for _ in range(n)
+        ]  # list of nodes (indexed from 1 to n, with position 0 unused)
 
     def numVertices(self) -> int:
         """
@@ -197,7 +206,7 @@ class Graph:
                 return adj  # Return the edge if found
         return None  # Return None if no edge is found
 
-    def addAgentNode(self, nodeId:int, agentId:str) -> None:
+    def addAgentNode(self, nodeId: int, agentId: str) -> None:
         """
         # Description
             -> Introduces a given agent to the node identified by the provided Node ID
@@ -210,7 +219,7 @@ class Graph:
         # Find the node to insert the agent into
         self.verts[nodeId].addAgent(agentId)
 
-    def removeAgentNode(self, nodeId:int, agentId:str) -> None:
+    def removeAgentNode(self, nodeId: int, agentId: str) -> None:
         """
         # Description
             -> Removes a given agent from the node identified by the provided Node ID
@@ -221,11 +230,11 @@ class Graph:
         """
         self.verts[nodeId].removeAgent(agentId)
 
-    def performTrashExtraction(self, nodeId:int, truckId:str, binId:str) -> None:
+    def performTrashExtraction(self, nodeId: int, truckId: str, binId: str) -> None:
         """
         # Description
             -> Performs trash extraction between a truck and a bin
-        
+
         := param: noduleId - Nodule in which the extraction must be performed
         := param: truckId - Identification number of the truck involved in the extraction
         := param: binId - Identification number of the bin involved in the extraction

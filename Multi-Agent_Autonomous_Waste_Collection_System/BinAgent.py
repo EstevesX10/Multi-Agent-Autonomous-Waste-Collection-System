@@ -10,50 +10,66 @@ import random
 
 from Environment import Environment
 
+
 class GenerateTrashBehaviour(PeriodicBehaviour):
-        async def run(self):
-            # Randomly generate trash (e.g., between 1 and 5 units)
-            if self.agent.getCurrentTrashLevel() < self.agent.getTrashMaxCapacity():
-                generated_trash = random.randint(1, 5)
-                # Ensure it does not exceed max capacity
-                newTrashLevel = min(self.agent.getTrashMaxCapacity(), self.agent.getCurrentTrashLevel() + generated_trash)
-                self.agent.updateTrashLevel(newTrashLevel)
-                print(f"[{self.agent.jid.localpart}] Generated {generated_trash} units of trash. Total now: {self.agent.getCurrentTrashLevel()} units.")
-            else:
-                print(f"[{self.agent.jid.localpart}] Full! Capacity: {self.agent.getTrashMaxCapacity()} units.")
+    async def run(self):
+        # Randomly generate trash (e.g., between 1 and 5 units)
+        if self.agent.getCurrentTrashLevel() < self.agent.getTrashMaxCapacity():
+            generated_trash = random.randint(1, 5)
+            # Ensure it does not exceed max capacity
+            newTrashLevel = min(
+                self.agent.getTrashMaxCapacity(),
+                self.agent.getCurrentTrashLevel() + generated_trash,
+            )
+            self.agent.updateTrashLevel(newTrashLevel)
+            print(
+                f"[{str(self.agent.jid)}] Generated {generated_trash} units of trash. Total now: {self.agent.getCurrentTrashLevel()} units."
+            )
+        else:
+            print(
+                f"[{str(self.agent.jid)}] Full! Capacity: {self.agent.getTrashMaxCapacity()} units."
+            )
+
 
 class ProvideTrashBehaviour(CyclicBehaviour):
-        async def run(self):
-            # If the bin is not empty
-            msg = await self.receive(timeout=10)  # Wait for request message from the truck
-            
-            # Only if we received a request from the Truck and if the bin contains trash, we perform trash extraction
-            if msg and not self.agent.isEmpty():
-                print(f"[{self.agent.jid.localpart}] Received request: {msg.body}")
+    async def run(self):
+        # If the bin is not empty
+        msg = await self.receive(timeout=10)  # Wait for request message from the truck
 
-                # Get Available trash
-                trashAvailable = self.agent.getCurrentTrashLevel()
-                self.agent.updateTrashLevel(self.agent.getCurrentTrashLevel() - trashAvailable) # Reduce the trash in the bin
-                print(f"[{self.agent.jid.localpart}] Provided {trashAvailable} units of trash. Remaining: {self.agent.getCurrentTrashLevel()} units.")
+        # Only if we received a request from the Truck and if the bin contains trash, we perform trash extraction
+        if msg and not self.agent.isEmpty():
+            print(f"[{str(self.agent.jid)}] Received request: {msg.body}")
 
-                # Send response back to the truck
-                response = Message(to=str(msg.sender))
-                response.body = str(trashAvailable)  # Send the amount of trash provided
-                await self.send(response)
+            # Get Available trash
+            trashAvailable = self.agent.getCurrentTrashLevel()
+            self.agent.updateTrashLevel(
+                self.agent.getCurrentTrashLevel() - trashAvailable
+            )  # Reduce the trash in the bin
+            print(
+                f"[{str(self.agent.jid)}] Provided {trashAvailable} units of trash. Remaining: {self.agent.getCurrentTrashLevel()} units."
+            )
 
-                # Wait for confirmation from the truck
-                confirmation = await self.receive(timeout=10)
-                if confirmation:
-                    print(f"[{self.agent.jid.localpart}] Received confirmation: {confirmation.body}")
-                else:
-                    print(f"[{self.agent.jid.localpart}] No confirmation received")
+            # Send response back to the truck
+            response = Message(to=str(msg.sender))
+            response.body = str(trashAvailable)  # Send the amount of trash provided
+            await self.send(response)
+
+            # Wait for confirmation from the truck
+            confirmation = await self.receive(timeout=10)
+            if confirmation:
+                print(
+                    f"[{str(self.agent.jid)}] Received confirmation: {confirmation.body}"
+                )
+            else:
+                print(f"[{str(self.agent.jid)}] No confirmation received")
+
 
 class FillLevelReporterBehaviour(CyclicBehaviour):
     async def run(self):
         # wait for a message for 10 seconds
         msg = await self.receive(timeout=10)
 
-        # Check if a message was received and send a reply with the bin's current trash level  
+        # Check if a message was received and send a reply with the bin's current trash level
         if msg:
             print(f"{self.agent.jid}\t\t[RECEIVED MESSAGE]")
             response = msg.make_reply()
@@ -71,10 +87,11 @@ class FillLevelReporterBehaviour(CyclicBehaviour):
 
         msg = Message()
         msg.set_metadata("performative", "fill_level_query")
-        msg.body="bruhhhhh"
+        msg.body = "bruhhhhh"
         # self.add_behaviour(ProximitySenderBehaviour(msg, SIGNAL_STRENGTH))
 
         print(template.match(msg))
+
 
 class BinAgent(Agent):
     def __init__(
@@ -133,14 +150,14 @@ class BinAgent(Agent):
         if not self.isEmpty():
             self._currentTrashLevel = 0
 
-    def removeTrash(self, trashAmount:int) -> None:
+    def removeTrash(self, trashAmount: int) -> None:
         """
         # Description
             -> Removes a certain trash amount from the Bin
         """
         self._currentTrashLevel -= trashAmount
 
-    def updateTrashLevel(self, newTrashLevel:int) -> None:
+    def updateTrashLevel(self, newTrashLevel: int) -> None:
         """
         # Description
             -> Updates the current bin's trash level

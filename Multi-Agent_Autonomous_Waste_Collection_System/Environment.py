@@ -15,6 +15,7 @@ from DataStructures import Graph
 # from BinAgent import (BinAgent)
 # from TruckAgent import (TruckAgent)
 
+
 @dataclass
 class Road:
     _distance: float
@@ -37,15 +38,16 @@ class Road:
     def toggleAvailability(self):
         self._availability = 0 if self._availability == 1 else 1
 
+
 class Environment:
     def __init__(self) -> None:
         self.numberNodes, self.graph = self.__readGraph(
             "./EnvironmentLayouts/Layout1.txt"
         )
         self.distanceMatrix, self.parentMatrix = self.__calculateMatrices()
-        self.truckPositions = {} # {'TruckID':'NodeID'}
-        self.binPositions = {} # {'BinID':'NodeID'}
-        self.agents = {} # {'AgentID': 'Agent Object'} - CAN I DO THIS??
+        self.truckPositions = {}  # {'TruckID':'NodeID'}
+        self.binPositions = {}  # {'BinID':'NodeID'}
+        self.agents = {}  # {'AgentID': 'Agent Object'} - CAN I DO THIS??
 
     def __readGraph(
         self, envConfiguration: str, verbose: bool = False
@@ -139,11 +141,11 @@ class Environment:
     def getAgentsDistribution(self) -> dict:
         # Initialize a dictionary for the agents within each node
         nodes = {}
-        
+
         # Loop over each node and get what contents it witholds
         for idx, node in enumerate(self.graph.verts):
-            nodes.update({f'Node {idx}':node.getAgents()})
-        
+            nodes.update({f"Node {idx}": node.getAgents()})
+
         return nodes
 
     def printPositions(self):
@@ -151,40 +153,46 @@ class Environment:
         print(self.truckPositions)
         print(self.binPositions)
 
-    def addAgent(self, nodeId:int, agent:Agent) -> None:
+    def addAgent(self, nodeId: int, agent: Agent) -> None:
         # Check if the agent already exists
-        if agent.jid.localpart in list(self.truckPositions.keys()) + list(self.binPositions.keys()):
-            print(f"[Invalid Agent] {agent.jid.localpart} - Agent already in the environment!")
+        if str(agent.jid) in list(self.truckPositions.keys()) + list(
+            self.binPositions.keys()
+        ):
+            print(
+                f"[Invalid Agent] {str(agent.jid)} - Agent already in the environment!"
+            )
             return
 
         # Update Truck Agents Positions
-        if 'truck' in agent.jid.localpart:
-            self.truckPositions.update({agent.jid.localpart:nodeId})
+        if "truck" in str(agent.jid):
+            self.truckPositions.update({str(agent.jid): nodeId})
 
         # Update Bin Agents Positions
-        elif 'bin' in agent.jid.localpart:
-            self.binPositions.update({agent.jid.localpart:nodeId})
+        elif "bin" in str(agent.jid):
+            self.binPositions.update({str(agent.jid): nodeId})
 
         # Insert the Agent into a given nodule of the network
-        self.graph.addAgentNode(nodeId, agent.jid.localpart)
+        self.graph.addAgentNode(nodeId, str(agent.jid))
 
         # Save the agent instance
-        self.agents.update({agent.jid.localpart:agent})
+        self.agents.update({str(agent.jid): agent})
 
-    def getNodeAgents(self, nodeId:int) -> list:
+    def getNodeAgents(self, nodeId: int) -> list:
         # Fetch the agents inside a given node
         return self.graph.verts[nodeId].getAgents()
 
-    def updateTruckPosition(self, oldNodePos:int, newNodePos:int, agentId:str) -> None:
+    def updateTruckPosition(
+        self, oldNodePos: int, newNodePos: int, agentId: str
+    ) -> None:
         # Update the Truck position
         self.graph.removeAgentNode(oldNodePos, agentId)
         self.graph.addAgentNode(newNodePos, agentId)
-        self.truckPositions.update({agentId:newNodePos})
+        self.truckPositions.update({agentId: newNodePos})
 
-    def performTrashExtraction(self, nodeId:int, truckId:str, binId:str) -> None:
+    def performTrashExtraction(self, nodeId: int, truckId: str, binId: str) -> None:
         # Perfrom trash extraction between a truck and a bin
         self.graph.performTrashExtraction(nodeId, truckId, binId)
 
-    def getTruckPosition(self, truckId:str) -> int:
+    def getTruckPosition(self, truckId: str) -> int:
         # Get the current node, the truck is on
         return self.truckPositions[truckId]
