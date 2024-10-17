@@ -138,6 +138,10 @@ class Environment:
 
         return distanceMatrix, parentMatrix
 
+    def _dayClock(self):
+        # EVERYTIME A EVENT HAPPENS UPDATE THE TIME/CLOCK?
+        pass
+
     def getAgentsDistribution(self) -> dict:
         # Initialize a dictionary for the agents within each node
         nodes = {}

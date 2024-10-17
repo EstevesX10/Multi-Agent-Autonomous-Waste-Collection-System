@@ -13,7 +13,6 @@ from SuperAgent import SuperAgent
 
 SIGNAL_STRENGTH = 10
 
-
 class PickUpBehaviour(OneShotBehaviour):
     async def on_start(self, target):
         print(f"Truck moving to {target}")
@@ -29,68 +28,6 @@ class PickUpBehaviour(OneShotBehaviour):
     async def on_end(self):
         print(f"Behaviour finished with exit code {self.exit_code}.")
 
-
-"""
-class ProximitySenderBehaviour(CyclicBehaviour):
-    def __init__(self, msg: Message, signal_dist: float):
-        super().__init__()
-        self.msg = msg
-        self.signal_dist = signal_dist
-
-    def bfs(self):
-        # Fetch an instance of the environment
-        env: Environment = self.agent.env
-
-        # Initialize a queue with the current agent's position and the current depth of the search given the node (used to perfrom BFS)
-        nodes = [(self.agent.getMapPosition(), 0)]
-
-        # Initialize a visited array to keep track of the already visited nodes
-        visited = [False] * env.numberNodes
-        # i = 0
-
-        # While we still have elements to analyse (aka inside the queue)
-        while len(nodes) != 0:
-            # Pop the next node to be analysed
-            node, depth = nodes.pop()
-
-            # Update its visited state on the previous array
-            visited[node] = True
-
-            # Check if the search has gone beyond the depth limited defined
-            if depth >= self.signal_dist:
-                continue
-
-            # Iterate through the adjacent nodes
-            for edge in env.graph.adjsNodes(node):
-                n = edge.endnode()
-
-                # If the current adjacent node has already been visited, then we check the next
-                if visited[n]:
-                    continue
-
-                # Add the new unvisited node to the queue alongside its depth
-                nodes.append((n, depth + edge.value.getDistance()))
-
-                # Fetch the agents inside the current adjacent node
-                content = env.graph.verts[n].getContents()
-
-                # For each agent inside the current adjacent node, we send it a message
-                for contentAgent in content:
-                    if isinstance(contentAgent, BinAgent):
-                        self.msg.to = contentAgent.jid.localpart + "@" + contentAgent.jid.domain
-                        # await self.send(self.msg)
-                        print(f"{self.agent.jid}\t[SENT A MESSAGE]")
-
-            # i += 1
-
-    async def run(self):
-        # Fetch an instance of the environment
-        env: Environment = self.agent.env
-
-        # CODE HERE
-"""
-
-
 class ListenerBehaviour(CyclicBehaviour):
     async def on_start(self):
         print("[START TRUCK LISTENER BEHAVIOUR]")
@@ -102,7 +39,6 @@ class ListenerBehaviour(CyclicBehaviour):
             # If a message has been received, then we print it
             print(f"{self.agent.jid}\t[RECEIVED MESSAGE] : {msg.body}")
             self.target = msg.body
-
 
 class RequestTrashBehaviour(CyclicBehaviour):
     async def run(self):
@@ -155,7 +91,6 @@ class RequestTrashBehaviour(CyclicBehaviour):
                 else:
                     print(f"[{str(self.agent.jid)}] No response from bin.")
 
-
 class TruckMovement(CyclicBehaviour):
     async def on_start(self) -> None:
         print("[START TRUCK BEHAVIOUR]")
@@ -178,7 +113,6 @@ class TruckMovement(CyclicBehaviour):
     def _getTruckPosition(self):
         # Access the environment object to retrieve the truck position
         return self.agent.env.getTruckPosition(str(self.agent.jid))
-
 
 class ManagerBehaviour(CyclicBehaviour):
     # TODO: better heuristic
@@ -229,7 +163,8 @@ class AssigneeBehaviour(CyclicBehaviour):
     time: int = 0
 
     # TODO: this
-    def calculate_cost(self, bin):
+    def calculate_cost(self, bin:str):
+        # Get the road(s) between the truck and the bin
         return random.random()
 
     async def run(self):
