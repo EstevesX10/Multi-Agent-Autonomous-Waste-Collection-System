@@ -6,7 +6,7 @@ from spade.message import Message
 import asyncio
 import spade
 from dataclasses import dataclass
-from typing import Tuple
+from typing import Callable, Tuple, List
 
 import numpy as np
 
@@ -62,6 +62,9 @@ class Environment:
             numberNodes = int(lines[0])
             newGraph = Graph(numberNodes)
             for line in lines[1:]:
+                if len(line) == 0:
+                    continue
+
                 (
                     startNode,
                     endNode,
@@ -200,3 +203,52 @@ class Environment:
     def getTruckPosition(self, truckId: str) -> int:
         # Get the current node, the truck is on
         return self.truckPositions[truckId]
+
+    def getBinPosition(self, binId: str) -> int:
+        # Get the current node, the truck is on
+        return self.binPositions[binId]
+
+    def findPath(self, start: int, end: int) -> List[int] | None:
+        return a_star(start, end, self.graph, lambda x, y: self.distanceMatrix[x][y])
+
+
+# https://toxigon.com/a-star-algorithm-explained
+import heapq
+
+
+def a_star(start: int, goal: int, graph: Graph, heuristic: Callable[[int, int], float]):
+    open_list = []
+    heapq.heappush(open_list, (0, start))
+    came_from = {}
+    g_score = {start: 0}
+    f_score = {start: heuristic(start, goal)}
+
+    while open_list:
+        current = heapq.heappop(open_list)[1]
+
+        if current == goal:
+            return reconstruct_path(came_from, current)
+
+        for neighbor in graph.adjsNodes(current):
+            tentative_g_score = g_score[current] + neighbor.value.getDistance()
+
+            if (
+                neighbor.enode not in g_score
+                or tentative_g_score < g_score[neighbor.enode]
+            ):
+                came_from[neighbor.enode] = current
+                g_score[neighbor.enode] = tentative_g_score
+                f_score[neighbor.enode] = g_score[neighbor.enode] + heuristic(
+                    neighbor.enode, goal
+                )
+                heapq.heappush(open_list, (f_score[neighbor.enode], neighbor.enode))
+
+    return None
+
+
+def reconstruct_path(came_from, current):
+    total_path = [current]
+    while current in came_from:
+        current = came_from[current]
+        total_path.append(current)
+    return total_path[::-1]

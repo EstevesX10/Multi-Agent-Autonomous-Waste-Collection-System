@@ -13,6 +13,7 @@ from SuperAgent import SuperAgent
 
 SIGNAL_STRENGTH = 10
 
+
 class PickUpBehaviour(OneShotBehaviour):
     async def on_start(self, target):
         print(f"Truck moving to {target}")
@@ -28,6 +29,7 @@ class PickUpBehaviour(OneShotBehaviour):
     async def on_end(self):
         print(f"Behaviour finished with exit code {self.exit_code}.")
 
+
 class ListenerBehaviour(CyclicBehaviour):
     async def on_start(self):
         print("[START TRUCK LISTENER BEHAVIOUR]")
@@ -39,6 +41,7 @@ class ListenerBehaviour(CyclicBehaviour):
             # If a message has been received, then we print it
             print(f"{self.agent.jid}\t[RECEIVED MESSAGE] : {msg.body}")
             self.target = msg.body
+
 
 class RequestTrashBehaviour(CyclicBehaviour):
     async def run(self):
@@ -91,6 +94,7 @@ class RequestTrashBehaviour(CyclicBehaviour):
                 else:
                     print(f"[{str(self.agent.jid)}] No response from bin.")
 
+
 class TruckMovement(CyclicBehaviour):
     async def on_start(self) -> None:
         print("[START TRUCK BEHAVIOUR]")
@@ -114,6 +118,7 @@ class TruckMovement(CyclicBehaviour):
         # Access the environment object to retrieve the truck position
         return self.agent.env.getTruckPosition(str(self.agent.jid))
 
+
 class ManagerBehaviour(CyclicBehaviour):
     # TODO: better heuristic
     def choose_bin(self):
@@ -131,23 +136,23 @@ class ManagerBehaviour(CyclicBehaviour):
             metadata={"performative": "query"},
             body=bin,
         )
+        print(f"{self.agent.jid} is broadcasting")
         peers = await self.agent.broadcast(msg, TruckAgent, self)
-
-        resp = await self.receive(timeout=10)
-        if not resp:
-            print(f"Manager {self.agent.jid} got no replies")
-            return
 
         costs = {}
         times = {}
-        cost, time = resp.body.split()
-        costs[resp.sender] = cost
-        times[resp.sender] = time
-        for _ in range(len(peers) - 1):
+        for _ in range(len(peers)):
             resp = await self.receive(timeout=10)
+            if not resp:
+                print(f"{self.agent.jid} manager missed some replies")
+                break
             cost, time = resp.body.split()
             costs[resp.sender] = cost
             times[resp.sender] = time
+
+        if len(costs) == 0:
+            print(f"{self.agent.jid} manager got no replies")
+            return
 
         choosen = min(costs.keys(), key=costs.__getitem__)
 
@@ -156,14 +161,27 @@ class ManagerBehaviour(CyclicBehaviour):
             metadata={"performative": "request"},
             body=f"{bin} {times[choosen]}",
         )
+        print(f"{self.agent.jid} choose {msg.to} for {bin}")
         await self.send(msg)
+
+        confirm = await self.receive(timeout=10)
+        if confirm and confirm.body == "ok":
+            print(f"Removed manager from {self.agent.jid}")
+            self.agent.remove_behaviour(self)
 
 
 class AssigneeBehaviour(CyclicBehaviour):
     time: int = 0
 
+    # TODO: what should should action be?
+    def add_task(self, targetId: str, action):
+        target = self.agent.env.getBinPosition(targetId)
+        path = self.agent.env.findPath(self.agent.end_pos, target)
+        self.agent.tasks.extend(path)
+        self.agent.tasks.append(action)
+
     # TODO: this
-    def calculate_cost(self, bin:str):
+    def calculate_cost(self, bin: str):
         # Get the road(s) between the truck and the bin
         return random.random()
 
@@ -175,7 +193,7 @@ class AssigneeBehaviour(CyclicBehaviour):
 
         if req.metadata["performative"] == "query":
             # Reply with the cost
-            print(f"Got query from {req.sender}")
+            print(f"{self.agent.jid} got query from {req.sender}")
             cost = self.calculate_cost(req.body)
 
             resp = req.make_reply()
@@ -185,17 +203,21 @@ class AssigneeBehaviour(CyclicBehaviour):
         elif req.metadata["performative"] == "request":
             # Add new task
             bin, time = req.body.split()
+            resp = req.make_reply()
+            resp.metadata = {"performative": "inform"}
             if int(time) >= self.time:
                 # Request is valid
                 # TODO: add task
                 print(f"{self.agent.jid} accepted {bin}")
 
-                # TODO: maybe the manager should kill himself?
-                for behaviour in self.agent.behaviours:
-                    if isinstance(behaviour, ManagerBehaviour):
-                        self.agent.remove_behaviour(ManagerBehaviour)
-                        print(f"Removed Manager from {self.agent.jid}")
+                self.add_task(bin, "pickup")
+                print(f"{self.agent.jid} tasks are {self.agent.tasks}")
+
                 self.time += 1
+                resp.body = "ok"
+            else:
+                resp.body = "deny"
+            await self.send(resp)
         else:
             print(f"Unexpected performative {req.performative}")
 
@@ -219,6 +241,9 @@ class TruckAgent(SuperAgent):
         self._fuelDepletionRate = 2 * (
             1 / self._fueltype
         )  # Constant that determines how fast the truck loses its fuel
+
+        self.tasks = []
+        self.end_pos = -1
 
     async def setup(self):
         print(f"[SETUP] {self.jid}\n")
