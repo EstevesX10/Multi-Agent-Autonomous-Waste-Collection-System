@@ -103,7 +103,7 @@ class RequestTrashBehaviour(CyclicBehaviour):
 
 class TruckMovement(CyclicBehaviour):
     async def on_start(self) -> None:
-        print("[START TRUCK BEHAVIOUR]")
+        self.agent.logger.debug("[START TRUCK MOVEMENT]")
 
     async def run(self):
         # Perceive environment data
@@ -130,16 +130,16 @@ class TruckMovement(CyclicBehaviour):
             self.agent.env.updateTruckPosition(
                 currentTruckPosition, newNodePos, str(self.agent.jid)
             )
-            print(f"{self.agent.jid} is now at {newNodePos}")
+            self.agent.logger.debug(f"is now at {newNodePos}")
 
         elif cur_task == Tasks.PICKUP:
-            print("TODO: pickup trash")
+            self.agent.logger.warning("TODO: pickup trash")
 
         elif cur_task == Tasks.REFUEL:
-            print("TODO: refuel")
+            self.agent.logger.warning("TODO: refuel")
 
         else:
-            print(f"{self.agent.jid} has unknown task: {cur_task}")
+            self.agent.logger.warning(f"has unknown task: {cur_task}")
 
     def _getTruckPosition(self):
         # Access the environment object to retrieve the truck position
@@ -164,7 +164,7 @@ class ManagerBehaviour(CyclicBehaviour):
             metadata={"performative": "query"},
             body=bin,
         )
-        print(f"{self.agent.jid} is broadcasting")
+        self.agent.logger.debug("is broadcasting")
         peers = await self.agent.broadcast(msg, TruckAgent, self)
 
         # Calculate best candidate
@@ -174,14 +174,14 @@ class ManagerBehaviour(CyclicBehaviour):
             # TODO: this can in some cases receive the confirmation msg... ?
             resp = await self.receive(timeout=10)
             if not resp:
-                print(f"{self.agent.jid} manager missed some replies")
+                self.agent.logger.debug("manager missed some replies")
                 break
             cost, time = resp.body.split()
             costs[resp.sender] = cost
             times[resp.sender] = time
 
         if len(costs) == 0:
-            print(f"{self.agent.jid} manager got no replies")
+            self.agent.logger.warning("manager got no replies")
             return
 
         choosen = min(costs.keys(), key=costs.__getitem__)
@@ -192,22 +192,26 @@ class ManagerBehaviour(CyclicBehaviour):
             metadata={"performative": "request"},
             body=f"{bin} {times[choosen]}",
         )
-        print(f"{self.agent.jid} choose {msg.to} for {bin}")
+        self.agent.logger.debug(f"choose {msg.to} for {bin}")
         await self.send(msg)
 
         # Get confirmation
+        # TODO: for some unholy reason sometimes this gets CancelledError???
+        # cancel comes from container.py run_container
         confirm = await self.receive(timeout=10)
         if not confirm:
-            print(
-                f"{self.agent.jid} manager got no request confirmation. Trying again..."
+            self.agent.logger.debug(
+                "manager got no request confirmation. Trying again..."
             )
             return
 
         if confirm.body == "ok":
-            print(f"{self.agent.jid} manager got confirmation from {confirm.sender}")
+            self.agent.logger.debug(f"manager got confirmation from {confirm.sender}")
             if confirm.sender == self.agent.jid:
-                print(f"Removed manager from {self.agent.jid}")
+                self.agent.logger.debug("is no longer a manager")
                 self.agent.remove_behaviour(self)
+        elif confirm.body == "deny":
+            self.agent.logger.debug(f"manager got denied from {confirm.sender}")
 
 
 class AssigneeBehaviour(CyclicBehaviour):
@@ -234,7 +238,7 @@ class AssigneeBehaviour(CyclicBehaviour):
 
         if req.metadata["performative"] == "query":
             # Reply with the cost
-            print(f"{self.agent.jid} got query from {req.sender}")
+            self.agent.logger.debug(f"got query from {req.sender}")
             cost = self.calculate_cost(req.body)
 
             resp = req.make_reply()
@@ -248,10 +252,10 @@ class AssigneeBehaviour(CyclicBehaviour):
             resp.metadata = {"performative": "confirm"}
             if int(time) >= self.time:
                 # Request is valid
-                print(f"{self.agent.jid} accepted {bin}")
+                self.agent.logger.info(f"accepted {bin}")
 
                 self.add_task(bin, Tasks.PICKUP)
-                print(f"{self.agent.jid} tasks are {self.agent.tasks}")
+                self.agent.logger.debug(f"tasks are {self.agent.tasks}")
 
                 self.time += 1
                 resp.body = "ok"
@@ -259,7 +263,7 @@ class AssigneeBehaviour(CyclicBehaviour):
                 resp.body = "deny"
             await self.send(resp)
         else:
-            print(f"Unexpected performative {req.performative}")
+            self.agent.logger.warning(f"Unexpected performative {req.performative}")
 
 
 class TruckAgent(SuperAgent):

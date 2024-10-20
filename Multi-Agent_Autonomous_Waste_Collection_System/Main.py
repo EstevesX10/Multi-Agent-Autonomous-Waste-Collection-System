@@ -20,6 +20,7 @@ async def main():
     # bin2 = BinAgent("bin2@localhost", "password", env)
 
     # Insert the Agents into the environment
+    # TODO: maybe the agents should add themselves at setup to avoid anoying messages
     env.addAgent(nodeId=0, agent=truck1)
     env.addAgent(nodeId=0, agent=truck2)
     env.addAgent(nodeId=1, agent=bin1)
