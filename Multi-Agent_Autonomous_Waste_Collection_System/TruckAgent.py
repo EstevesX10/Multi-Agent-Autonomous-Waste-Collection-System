@@ -14,6 +14,12 @@ from SuperAgent import SuperAgent
 SIGNAL_STRENGTH = 10
 
 
+class Tasks:
+    PICKUP = "pickup"
+    REFUEL = "refuel"
+    # TODO: more
+
+
 class PickUpBehaviour(OneShotBehaviour):
     async def on_start(self, target):
         print(f"Truck moving to {target}")
@@ -103,16 +109,36 @@ class TruckMovement(CyclicBehaviour):
         # Perceive environment data
         currentTruckPosition = self._getTruckPosition()
 
-        # <TODO> Perform some movement and get a new node
-        newNodePos = 0
+        if len(self.agent.tasks) == 0:
+            # Agent has no tasks
+            return
 
-        # Update the truck position insde the Environment
-        self.agent.env.updateTruckPosition(
-            currentTruckPosition, newNodePos, str(self.agent.jid)
-        )
+        cur_task = self.agent.tasks.pop(0)
+        if isinstance(cur_task, int):
+            # Move to the next node
+            newNodePos = cur_task
 
-        # Communicate with air traffic control
-        # await self.send_instruction_to_atc(truck_position)
+            # Wait while the truck is moving
+            road = self.agent.env.graph.findEdge(currentTruckPosition, newNodePos)
+            assert (
+                road is not None
+            ), f"{self.agent.jid} is at {currentTruckPosition} and is trying to go to {newNodePos} but a road does NOT exist"
+            duration = road.value.getTravelTime()
+            await asyncio.wait(duration)
+
+            # Update the truck position inside the Environment
+            self.agent.env.updateTruckPosition(
+                currentTruckPosition, newNodePos, str(self.agent.jid)
+            )
+
+        elif cur_task == Tasks.PICKUP:
+            print("TODO: pickup trash")
+
+        elif cur_task == Tasks.REFUEL:
+            print("TODO: refuel")
+
+        else:
+            print(f"{self.agent.jid} has unknown task: {cur_task}")
 
     def _getTruckPosition(self):
         # Access the environment object to retrieve the truck position
@@ -131,6 +157,7 @@ class ManagerBehaviour(CyclicBehaviour):
         return choosen
 
     async def run(self):
+        # Request costs
         bin = self.choose_bin()
         msg = Message(
             metadata={"performative": "query"},
@@ -139,9 +166,11 @@ class ManagerBehaviour(CyclicBehaviour):
         print(f"{self.agent.jid} is broadcasting")
         peers = await self.agent.broadcast(msg, TruckAgent, self)
 
+        # Calculate best candidate
         costs = {}
         times = {}
         for _ in range(len(peers)):
+            # TODO: this can in some cases receive the confirmation msg... ?
             resp = await self.receive(timeout=10)
             if not resp:
                 print(f"{self.agent.jid} manager missed some replies")
@@ -156,6 +185,7 @@ class ManagerBehaviour(CyclicBehaviour):
 
         choosen = min(costs.keys(), key=costs.__getitem__)
 
+        # Assign task to choosen
         msg = Message(
             to=str(choosen),
             metadata={"performative": "request"},
@@ -164,10 +194,19 @@ class ManagerBehaviour(CyclicBehaviour):
         print(f"{self.agent.jid} choose {msg.to} for {bin}")
         await self.send(msg)
 
+        # Get confirmation
         confirm = await self.receive(timeout=10)
-        if confirm and confirm.body == "ok":
-            print(f"Removed manager from {self.agent.jid}")
-            self.agent.remove_behaviour(self)
+        if not confirm:
+            print(
+                f"{self.agent.jid} manager got no request confirmation. Trying again..."
+            )
+            return
+
+        if confirm.body == "ok":
+            print(f"{self.agent.jid} manager got confirmation from {confirm.sender}")
+            if confirm.sender == self.agent.jid:
+                print(f"Removed manager from {self.agent.jid}")
+                self.agent.remove_behaviour(self)
 
 
 class AssigneeBehaviour(CyclicBehaviour):
@@ -176,12 +215,10 @@ class AssigneeBehaviour(CyclicBehaviour):
     # TODO: what should should action be?
     def add_task(self, targetId: str, action):
         target = self.agent.env.getBinPosition(targetId)
-        end_pos = next(
-            pos for pos in reversed(self.agent.tasks) if isinstance(pos, int)
-        )
-        path = self.agent.env.findPath(end_pos, target)
-        self.agent.tasks.extend(path)
+        path = self.agent.env.findPath(self.agent.end_pos, target)
+        self.agent.tasks.extend(path[1:])
         self.agent.tasks.append(action)
+        self.agent.end_pos = path[-1]
 
     # TODO: this
     def calculate_cost(self, bin: str):
@@ -207,13 +244,12 @@ class AssigneeBehaviour(CyclicBehaviour):
             # Add new task
             bin, time = req.body.split()
             resp = req.make_reply()
-            resp.metadata = {"performative": "inform"}
+            resp.metadata = {"performative": "confirm"}
             if int(time) >= self.time:
                 # Request is valid
-                # TODO: add task
                 print(f"{self.agent.jid} accepted {bin}")
 
-                self.add_task(bin, "pickup")
+                self.add_task(bin, Tasks.PICKUP)
                 print(f"{self.agent.jid} tasks are {self.agent.tasks}")
 
                 self.time += 1
@@ -246,6 +282,7 @@ class TruckAgent(SuperAgent):
         )  # Constant that determines how fast the truck loses its fuel
 
         self.tasks = []
+        self.end_pos = 0  # TODO: isto devia ser a posição inicial
 
     async def setup(self):
         print(f"[SETUP] {self.jid}\n")
@@ -262,14 +299,16 @@ class TruckAgent(SuperAgent):
         # self.add_behaviour(ProximitySenderBehaviour(msg, SIGNAL_STRENGTH))
 
         # Setting the Truck Movement Behaviour
-        # self.add_behaviour(TruckMovement())
+        self.add_behaviour(TruckMovement())
 
         # Add an extraction behaviour
         # self.add_behaviour(RequestTrashBehaviour())
 
         template = Template()
         template.set_metadata("performative", "inform")
-        self.add_behaviour(ManagerBehaviour(), template)
+        template2 = Template()
+        template2.set_metadata("performative", "confirm")
+        self.add_behaviour(ManagerBehaviour(), template | template2)
 
         template = Template()
         template.set_metadata("performative", "query")

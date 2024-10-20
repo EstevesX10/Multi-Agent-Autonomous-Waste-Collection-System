@@ -38,6 +38,9 @@ class Road:
     def toggleAvailability(self):
         self._availability = 0 if self._availability == 1 else 1
 
+    def getTravelTime(self):
+        return self.getDistance()  # TODO: something better
+
 
 class Environment:
     def __init__(self) -> None:
