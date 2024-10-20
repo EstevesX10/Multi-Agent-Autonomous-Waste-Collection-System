@@ -176,7 +176,10 @@ class AssigneeBehaviour(CyclicBehaviour):
     # TODO: what should should action be?
     def add_task(self, targetId: str, action):
         target = self.agent.env.getBinPosition(targetId)
-        path = self.agent.env.findPath(self.agent.end_pos, target)
+        end_pos = next(
+            pos for pos in reversed(self.agent.tasks) if isinstance(pos, int)
+        )
+        path = self.agent.env.findPath(end_pos, target)
         self.agent.tasks.extend(path)
         self.agent.tasks.append(action)
 
@@ -243,7 +246,6 @@ class TruckAgent(SuperAgent):
         )  # Constant that determines how fast the truck loses its fuel
 
         self.tasks = []
-        self.end_pos = -1
 
     async def setup(self):
         print(f"[SETUP] {self.jid}\n")
