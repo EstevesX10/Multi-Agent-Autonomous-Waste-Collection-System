@@ -22,7 +22,7 @@ async def main():
     # Insert the Agents into the environment
     env.addAgent(nodeId=0, agent=truck1)
     env.addAgent(nodeId=0, agent=truck2)
-    env.addAgent(nodeId=0, agent=bin1)
+    env.addAgent(nodeId=1, agent=bin1)
     # env.addAgent(nodeId=1, agent=bin2)
 
     # Print the agents per nodes of the network

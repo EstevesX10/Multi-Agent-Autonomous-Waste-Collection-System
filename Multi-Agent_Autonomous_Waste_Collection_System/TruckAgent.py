@@ -124,12 +124,13 @@ class TruckMovement(CyclicBehaviour):
                 road is not None
             ), f"{self.agent.jid} is at {currentTruckPosition} and is trying to go to {newNodePos} but a road does NOT exist"
             duration = road.value.getTravelTime()
-            await asyncio.wait(duration)
+            await asyncio.sleep(duration)
 
             # Update the truck position inside the Environment
             self.agent.env.updateTruckPosition(
                 currentTruckPosition, newNodePos, str(self.agent.jid)
             )
+            print(f"{self.agent.jid} is now at {newNodePos}")
 
         elif cur_task == Tasks.PICKUP:
             print("TODO: pickup trash")
