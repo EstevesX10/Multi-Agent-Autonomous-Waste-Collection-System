@@ -1,6 +1,5 @@
 # Import necessary SPADE modules
 from __future__ import annotations
-from spade.agent import Agent
 from spade.behaviour import CyclicBehaviour, OneShotBehaviour, PeriodicBehaviour
 from spade.template import Template
 from spade.message import Message
@@ -9,25 +8,26 @@ import spade
 import random
 
 from Environment import Environment
+from SuperAgent import SuperAgent
+from stats import Stats
 
 
 class GenerateTrashBehaviour(PeriodicBehaviour):
     async def run(self):
         # Randomly generate trash (e.g., between 1 and 5 units)
-        if self.agent.getCurrentTrashLevel() < self.agent.getTrashMaxCapacity():
-            generated_trash = random.randint(1, 5)
-            # Ensure it does not exceed max capacity
-            newTrashLevel = min(
-                self.agent.getTrashMaxCapacity(),
-                self.agent.getCurrentTrashLevel() + generated_trash,
-            )
-            self.agent.updateTrashLevel(newTrashLevel)
-            print(
-                f"[{str(self.agent.jid)}] Generated {generated_trash} units of trash. Total now: {self.agent.getCurrentTrashLevel()} units."
+        generated_trash = random.randint(1, 5)
+
+        newTrashLevel = self.agent.getCurrentTrashLevel() + generated_trash
+        if newTrashLevel > self.agent.getTrashMaxCapacity():
+            # Trash overspill
+            Stats.trash_overspill += newTrashLevel - self.agent.getTrashMaxCapacity()
+            self.agent.logger.warning(
+                f"Full! Capacity: {self.agent.getTrashMaxCapacity()} units."
             )
         else:
-            print(
-                f"[{str(self.agent.jid)}] Full! Capacity: {self.agent.getTrashMaxCapacity()} units."
+            self.agent.updateTrashLevel(newTrashLevel)
+            self.agent.logger.info(
+                f"Generated {generated_trash} units of trash. Total now: {self.agent.getCurrentTrashLevel()} units."
             )
 
 
@@ -93,7 +93,7 @@ class FillLevelReporterBehaviour(CyclicBehaviour):
         print(template.match(msg))
 
 
-class BinAgent(Agent):
+class BinAgent(SuperAgent):
     def __init__(
         self,
         jid: str,

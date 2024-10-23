@@ -10,6 +10,7 @@ import random
 from Environment import Environment
 from BinAgent import BinAgent
 from SuperAgent import SuperAgent
+from stats import Stats
 
 SIGNAL_STRENGTH = 10
 
@@ -124,12 +125,20 @@ class TruckMovement(CyclicBehaviour):
             assert (
                 road is not None
             ), f"{self.agent.jid} is at {currentTruckPosition} and is trying to go to {newNodePos} but a road does NOT exist"
-            
+
+            # Update stats
+            Stats.truck_distance_traveled[
+                str(self.agent.jid)
+            ] += road.value.getDistance()
+
             # Get the path duration
             duration = road.value.getTravelTime()
 
             # Wait while the truck is moving
             await asyncio.sleep(duration)
+
+            # Consume fuel
+            self.agent.consumeFuel(road.getFuelConsumption())
 
             # Update the truck position inside the Environment
             self.agent.env.updateTruckPosition(
@@ -401,7 +410,7 @@ class TruckAgent(SuperAgent):
         """
         self._currentTrashLevel = newTrashLevel
 
-    def updateFuelLevel(self, newFuelLevel:int) -> None:
+    def updateFuelLevel(self, newFuelLevel: int) -> None:
         """
         # Description
             -> Updates the currunt fuel level in the Truck
@@ -430,3 +439,15 @@ class TruckAgent(SuperAgent):
             self._currentTrashLevel += trashBin.getCurrentTrashLevel()
             trashBin.cleanBin()
         return trashBin
+
+    def consumeFuel(self, amount: int):
+        self._fuelLevel -= amount
+        Stats.fuel_consumed += amount
+
+        if self._fuelLevel <= 0:
+            # Truck is dead
+            Stats.trucks_without_fuel += 1
+            # TODO: redistribute tasks
+            self.stop()
+
+        return self._fuelLevel
