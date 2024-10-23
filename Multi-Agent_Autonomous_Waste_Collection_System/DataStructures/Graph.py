@@ -49,7 +49,6 @@ class Edge:
 
         self.value = v
 
-
 class Node:
     """
     Class representing a node in a graph.
@@ -261,3 +260,36 @@ class Graph:
         := param: binId - Identification number of the bin involved in the extraction
         """
         self.verts[nodeId].performTruckRefuel(truckId)
+
+
+    # [NOTE] NOT BEING USED AT THE MOMENT
+    def blockRoad(self, startNode: int, endNode:int) -> None:
+        """
+        # Description
+            -> Blocks a Road inside the graph
+
+        := param: startNode - Start Nodule of the Road
+        := param: endNode - End Nodule of the Road
+        """
+
+        # Find the Road on the Graph
+        node = self.findEdge(startNode, endNode)
+
+        # Block the Road
+        node.blockRoad()
+    
+    # [NOTE] NOT BEING USED AT THE MOMENT
+    def freeRoad(self, startNode: int, endNode:int) -> None:
+        """
+        # Description
+            -> Frees a Road inside the graph
+
+        := param: startNode - Start Nodule of the Road
+        := param: endNode - End Nodule of the Road
+        """
+
+        # Find the Road on the Graph
+        node = self.findEdge(startNode, endNode)
+
+        # Block the Road
+        node.freeRoad()

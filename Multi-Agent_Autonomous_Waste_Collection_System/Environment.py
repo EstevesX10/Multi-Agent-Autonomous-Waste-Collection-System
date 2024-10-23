@@ -35,8 +35,11 @@ class Road:
     def getBatteryConsumption(self):
         return self._batteryConsumption
 
-    def toggleAvailability(self):
-        self._availability = 0 if self._availability == 1 else 1
+    def blockRoad(self):
+        self._availability = 0
+
+    def freeRoad(self):
+        self._availability = 1
 
     def getTravelTime(self):
         return self.getDistance()  # TODO: something better
@@ -53,6 +56,7 @@ class Environment:
         self.agents = {}  # {'AgentID': 'Agent Object'} - CAN I DO THIS??
         self.trashDeposits = {'trashCentral':0} # MAYBE USE OTHERS
         self.refuelStations = {'trashCentral':0} # MAYBE USE OTHERS
+        self.roads = []
 
     # Graph Related Methods
 
@@ -89,6 +93,7 @@ class Environment:
                 # Making the connections directed to both sides
                 newGraph.insertNewEdge(startNode, endNode, newRoad)
                 newGraph.insertNewEdge(endNode, startNode, newRoad)
+                self.roads.append(newRoad)
 
         if verbose:
             print(f"Number of Nodes Added to the Network: {newGraph.numVertices()}")
@@ -148,10 +153,6 @@ class Environment:
 
         return distanceMatrix, parentMatrix
 
-    def _dayClock(self):
-        # EVERYTIME A EVENT HAPPENS UPDATE THE TIME/CLOCK?
-        pass
-
     def addAgent(self, nodeId: int, agent: Agent) -> None:
         # Check if the agent already exists
         if str(agent.jid) in list(self.truckPositions.keys()) + list(
@@ -175,6 +176,20 @@ class Environment:
 
         # Save the agent instance
         self.agents.update({str(agent.jid): agent})
+
+    # Road Related Methods
+
+    def getRoads(self) -> list:
+        return self.roads
+
+    # [NOTE] THESE 2 FOLLOWING METHODS ARE NOT BEING CURRENTLY USED AND NEITHER ARE THOSE RESPECTIVE INVOLVED WITHIN THE GRAPH STRUCTURE
+    def blockRoad(self, startNode:int, endNode:int) -> None:
+        self.graph.blockRoad(startNode, endNode)
+        self.graph.blockRoad(endNode, startNode)
+
+    def freeRoad(self, startNode:int, endNode:int) -> None:
+        self.graph.free(startNode, endNode)
+        self.graph.free(endNode, startNode)
 
     # Truck Related Methods
 
@@ -262,6 +277,9 @@ class Environment:
         # Fetch the agents inside a given node
         return self.graph.verts[nodeId].getAgents()
 
+    def _dayClock(self):
+        # EVERYTIME A EVENT HAPPENS UPDATE THE TIME/CLOCK?
+        pass
 
 # https://toxigon.com/a-star-algorithm-explained
 import heapq
