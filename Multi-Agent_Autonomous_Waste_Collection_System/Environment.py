@@ -11,6 +11,7 @@ from typing import Callable, Tuple, List
 import numpy as np
 
 from DataStructures import Graph
+from stats import Stats
 
 # from BinAgent import (BinAgent)
 # from TruckAgent import (TruckAgent)
@@ -54,8 +55,8 @@ class Environment:
         self.truckPositions = {}  # {'TruckID':'NodeID'}
         self.binPositions = {}  # {'BinID':'NodeID'}
         self.agents = {}  # {'AgentID': 'Agent Object'} - CAN I DO THIS??
-        self.trashDeposits = {'trashCentral':0} # MAYBE USE OTHERS
-        self.refuelStations = {'trashCentral':0} # MAYBE USE OTHERS
+        self.trashDeposits = {"trashCentral": 0}  # MAYBE USE OTHERS
+        self.refuelStations = {"trashCentral": 0}  # MAYBE USE OTHERS
         self.roads = []
 
     # Graph Related Methods
@@ -183,11 +184,11 @@ class Environment:
         return self.roads
 
     # [NOTE] THESE 2 FOLLOWING METHODS ARE NOT BEING CURRENTLY USED AND NEITHER ARE THOSE RESPECTIVE INVOLVED WITHIN THE GRAPH STRUCTURE
-    def blockRoad(self, startNode:int, endNode:int) -> None:
+    def blockRoad(self, startNode: int, endNode: int) -> None:
         self.graph.blockRoad(startNode, endNode)
         self.graph.blockRoad(endNode, startNode)
 
-    def freeRoad(self, startNode:int, endNode:int) -> None:
+    def freeRoad(self, startNode: int, endNode: int) -> None:
         self.graph.free(startNode, endNode)
         self.graph.free(endNode, startNode)
 
@@ -205,7 +206,7 @@ class Environment:
         self.graph.addAgentNode(newNodePos, agentId)
         self.truckPositions.update({agentId: newNodePos})
 
-    def getTrucks(self, nodeId:int) -> list:
+    def getTrucks(self, nodeId: int) -> list:
         # Initialze a list for the trucks that are inside a given node
         trucksFound = []
 
@@ -221,11 +222,11 @@ class Environment:
         # Perfrom trash extraction between a truck and a bin
         self.graph.performTrashExtraction(nodeId, truckId, binId)
 
-    def performTrashRefuel(self, nodeId:int, truckId:str) -> None:
+    def performTrashRefuel(self, nodeId: int, truckId: str) -> None:
         # Refuel Truck
         self.graph.performTruckRefuel(nodeId, truckId)
 
-    def _canRefuel(self, truckId:str) -> bool:
+    def _canRefuel(self, truckId: str) -> bool:
         # Checks all the available refuel stations
         for locationId, nodeId in self.refuelStations.items():
             # If the current truck is on one of them, then it can be refueled
@@ -239,7 +240,7 @@ class Environment:
         # Get the current node, the truck is on
         return self.binPositions[binId]
 
-    def getBins(self, nodeId:int) -> list:
+    def getBins(self, nodeId: int) -> list:
         # Initialze a list for the bin ids that are inside a given node
         binsFound = []
 
@@ -255,7 +256,7 @@ class Environment:
 
     def findPath(self, start: int, end: int) -> List[int] | None:
         return a_star(start, end, self.graph, lambda x, y: self.distanceMatrix[x][y])
-    
+
     # Miscellanious Methods
 
     def getAgentsDistribution(self) -> dict:
@@ -280,6 +281,7 @@ class Environment:
     def _dayClock(self):
         # EVERYTIME A EVENT HAPPENS UPDATE THE TIME/CLOCK?
         pass
+
 
 # https://toxigon.com/a-star-algorithm-explained
 import heapq

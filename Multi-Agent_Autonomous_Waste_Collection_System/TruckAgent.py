@@ -157,9 +157,9 @@ class TruckMovement(CyclicBehaviour):
             binId = self.agent.env.getBins(currentNode)[0]
 
             # Perform Trash Extraction
-            self.performTrashExtraction(currentNode, truckId, binId)
+            self.agent.env.performTrashExtraction(currentNode, truckId, binId)
 
-            self.agent.logger.warning("TODO: pickup trash")
+            self.agent.logger.info(f"extracted {amount} from {binId}")
 
         elif cur_task == Tasks.REFUEL:
             # Get the Truck ID
@@ -403,19 +403,22 @@ class TruckAgent(SuperAgent):
 
     # Setters
 
-    def updateTrashLevel(self, newTrashLevel: int) -> None:
-        """
-        # Description
-            -> Updates the currunt amount of trash in the Truck
-        """
-        self._currentTrashLevel = newTrashLevel
+    def addTrash(self, amount: int) -> int:
+        newTrashLevel = self.getCurrentTrashLevel() + amount
+        if newTrashLevel > self.getMaxTrashCapacity():
+            # Over capacity
+            Stats.trucks_over_capacity += 1
+            self.agent.logger.critical(
+                f"tryed to collect {amount}. CurrentLevel: {self.getCurrentTrashLevel()} Capacity: {self.getTrashMaxCapacity()}. Returning to base"
+            )
+            # TODO: cancel everything and return to base
+        else:
+            self._currentTrashLevel = newTrashLevel
+            self.logger.info(
+                f"Collected {amount} units of trash. Total now: {self.getCurrentTrashLevel()} units."
+            )
 
-    def updateFuelLevel(self, newFuelLevel: int) -> None:
-        """
-        # Description
-            -> Updates the currunt fuel level in the Truck
-        """
-        self._currentFuelLevel = newFuelLevel
+        return self._currentTrashLevel
 
     # ---------------------------------------------------------------------------------------
 
@@ -440,7 +443,7 @@ class TruckAgent(SuperAgent):
             trashBin.cleanBin()
         return trashBin
 
-    def consumeFuel(self, amount: int):
+    def consumeFuel(self, amount: int) -> int:
         self._fuelLevel -= amount
         Stats.fuel_consumed += amount
 

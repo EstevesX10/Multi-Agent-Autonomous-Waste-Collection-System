@@ -1,0 +1,35 @@
+coletar estatisticas para performance - Easy
+- ir adicionando à medida q se vai fazendo
+
+desastres aka deus - HARD
+- alterar hora -> bins, transito, ... é influenciado por isso
+- bloquear/desbloquear estradas
+
+acabar truckmovement - Medium
+- depositar na central
+- arranjar o pickup
+    coletar numero fixo
+    voltar para a central se algo der errado?
+
+cost function para trucks - Medium
+- tempo para reabastecer/esvaziar (se necessario)
+- distancia
+
+heuristic para A* - Easy
+- ja n me lembro (perguntar ao esteves)
+
+heuristic para escolher bin - Easy
+- bins precisam da previsao do seu lixo
+- escolher entre as mais cheias mas tentar evitar colisoes de todos managers escolher o msm
+
+redistribuir tarefas quando truck morre - HARD
+- talvez uma "variante" do manager só q ja tem os bins escolhidos
+- só acaba quando tudo estiver distribuido
+
+
+trucks precisam previsao do combustivel e capacidade - Easy
+corrijir bug do manager confirm pq é cancelado por motivo nenhum - Easy
+
+
+redistribuir tarefas de trucks mortos - Hard
+
