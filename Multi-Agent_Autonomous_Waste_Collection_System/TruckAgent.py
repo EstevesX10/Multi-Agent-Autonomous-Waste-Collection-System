@@ -113,17 +113,22 @@ class TruckMovement(CyclicBehaviour):
             # Agent has no tasks
             return
 
+        # Pop current task
         cur_task = self.agent.tasks.pop(0)
         if isinstance(cur_task, int):
             # Move to the next node
             newNodePos = cur_task
 
-            # Wait while the truck is moving
+            # Get the road for the next node
             road = self.agent.env.graph.findEdge(currentTruckPosition, newNodePos)
             assert (
                 road is not None
             ), f"{self.agent.jid} is at {currentTruckPosition} and is trying to go to {newNodePos} but a road does NOT exist"
+            
+            # Get the path duration
             duration = road.value.getTravelTime()
+
+            # Wait while the truck is moving
             await asyncio.sleep(duration)
 
             # Update the truck position inside the Environment
@@ -133,9 +138,30 @@ class TruckMovement(CyclicBehaviour):
             self.agent.logger.debug(f"is now at {newNodePos}")
 
         elif cur_task == Tasks.PICKUP:
+            # Get the Truck ID (formated)
+            truckId = str(self.agent.jid)
+
+            # Get the agent current node
+            currentNode = self.agent.env.getTruckPosition(truckId)
+
+            # Get the first Bin in the current node
+            binId = self.agent.env.getBins(currentNode)[0]
+
+            # Perform Trash Extraction
+            self.performTrashExtraction(currentNode, truckId, binId)
+
             self.agent.logger.warning("TODO: pickup trash")
 
         elif cur_task == Tasks.REFUEL:
+            # Get the Truck ID
+            truckId = str(self.agent.jid)
+
+            # Get the agent current node
+            currentNode = self.agent.env.getTruckPosition(truckId)
+
+            # Perform Trash Refueling
+            self.agent.performTrashRefuel(currentNode, truckId)
+
             self.agent.logger.warning("TODO: refuel")
 
         else:
@@ -281,7 +307,8 @@ class TruckAgent(SuperAgent):
         self._maxTrashCapacity = 50
 
         self._fueltype = 1  # 1 - Eletric || 2 - Gas / Gasoline
-        self._fuelLevel = 100
+        self._currentFuelLevel = 100
+        self._maxFuelCapacity = 100
         self._fuelDepletionRate = 2 * (
             1 / self._fueltype
         )  # Constant that determines how fast the truck loses its fuel
@@ -321,6 +348,8 @@ class TruckAgent(SuperAgent):
         template2.set_metadata("performative", "request")
         self.add_behaviour(AssigneeBehaviour(), template | template2)
 
+    # Getters
+
     def getMaxTrashCapacity(self) -> int:
         """
         # Description
@@ -342,12 +371,28 @@ class TruckAgent(SuperAgent):
         """
         return self.getMaxTrashCapacity() - self.getCurrentTrashLevel()
 
+    def getCurrentFuelLevel(self) -> int:
+        """
+        # Description
+            -> Get the current fuel level of the truck
+        """
+        return self._currentFuelLevel
+
+    def getMaxFuelLevel(self):
+        """
+        # Description
+            -> Get the maximum fuel capacity of the Truck
+        """
+        return self._maxFuelCapacity
+
     def isEmpty(self) -> bool:
         """
         # Description
             -> Check if the truck is empty
         """
         return self.getCurrentTrashLevel() == 0
+
+    # Setters
 
     def updateTrashLevel(self, newTrashLevel: int) -> None:
         """
@@ -356,12 +401,12 @@ class TruckAgent(SuperAgent):
         """
         self._currentTrashLevel = newTrashLevel
 
-    def removeTrash(self, trashAmount: int) -> None:
+    def updateFuelLevel(self, newFuelLevel:int) -> None:
         """
         # Description
-            -> Removes a certain amount of trash from the Truck
+            -> Updates the currunt fuel level in the Truck
         """
-        self._currentTrashLevel -= trashAmount
+        self._currentFuelLevel = newFuelLevel
 
     # ---------------------------------------------------------------------------------------
 

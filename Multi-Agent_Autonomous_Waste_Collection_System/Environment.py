@@ -51,6 +51,10 @@ class Environment:
         self.truckPositions = {}  # {'TruckID':'NodeID'}
         self.binPositions = {}  # {'BinID':'NodeID'}
         self.agents = {}  # {'AgentID': 'Agent Object'} - CAN I DO THIS??
+        self.trashDeposits = {'trashCentral':0} # MAYBE USE OTHERS
+        self.refuelStations = {'trashCentral':0} # MAYBE USE OTHERS
+
+    # Graph Related Methods
 
     def __readGraph(
         self, envConfiguration: str, verbose: bool = False
@@ -148,21 +152,6 @@ class Environment:
         # EVERYTIME A EVENT HAPPENS UPDATE THE TIME/CLOCK?
         pass
 
-    def getAgentsDistribution(self) -> dict:
-        # Initialize a dictionary for the agents within each node
-        nodes = {}
-
-        # Loop over each node and get what contents it witholds
-        for idx, node in enumerate(self.graph.verts):
-            nodes.update({f"Node {idx}": node.getAgents()})
-
-        return nodes
-
-    def printPositions(self):
-        # Printing the dictionaries with the agents positions in the graph
-        print(self.truckPositions)
-        print(self.binPositions)
-
     def addAgent(self, nodeId: int, agent: Agent) -> None:
         # Check if the agent already exists
         if str(agent.jid) in list(self.truckPositions.keys()) + list(
@@ -187,9 +176,11 @@ class Environment:
         # Save the agent instance
         self.agents.update({str(agent.jid): agent})
 
-    def getNodeAgents(self, nodeId: int) -> list:
-        # Fetch the agents inside a given node
-        return self.graph.verts[nodeId].getAgents()
+    # Truck Related Methods
+
+    def getTruckPosition(self, truckId: str) -> int:
+        # Get the current node, the truck is on
+        return self.truckPositions[truckId]
 
     def updateTruckPosition(
         self, oldNodePos: int, newNodePos: int, agentId: str
@@ -199,20 +190,77 @@ class Environment:
         self.graph.addAgentNode(newNodePos, agentId)
         self.truckPositions.update({agentId: newNodePos})
 
+    def getTrucks(self, nodeId:int) -> list:
+        # Initialze a list for the trucks that are inside a given node
+        trucksFound = []
+
+        # Iterate through the truck positions dictionary
+        for currentTruckId, currentNodeId in self.truckPositions.items():
+            if currentNodeId == nodeId:
+                trucksFound.append(currentTruckId)
+
+        # Return the trucks found
+        return trucksFound
+
     def performTrashExtraction(self, nodeId: int, truckId: str, binId: str) -> None:
         # Perfrom trash extraction between a truck and a bin
         self.graph.performTrashExtraction(nodeId, truckId, binId)
 
-    def getTruckPosition(self, truckId: str) -> int:
-        # Get the current node, the truck is on
-        return self.truckPositions[truckId]
+    def performTrashRefuel(self, nodeId:int, truckId:str) -> None:
+        # Refuel Truck
+        self.graph.performTruckRefuel(nodeId, truckId)
+
+    def _canRefuel(self, truckId:str) -> bool:
+        # Checks all the available refuel stations
+        for locationId, nodeId in self.refuelStations.items():
+            # If the current truck is on one of them, then it can be refueled
+            if nodeId == self.truckPositions[truckId]:
+                return True
+        return False
+
+    # Bin Related Methods
 
     def getBinPosition(self, binId: str) -> int:
         # Get the current node, the truck is on
         return self.binPositions[binId]
 
+    def getBins(self, nodeId:int) -> list:
+        # Initialze a list for the bin ids that are inside a given node
+        binsFound = []
+
+        # Iterate through the bin positions dictionary
+        for currentBinId, currentNodeId in self.binPositions.items():
+            if currentNodeId == nodeId:
+                binsFound.append(currentBinId)
+
+        # Return the bins found in the given node
+        return binsFound
+
+    # Task Management Methods
+
     def findPath(self, start: int, end: int) -> List[int] | None:
         return a_star(start, end, self.graph, lambda x, y: self.distanceMatrix[x][y])
+    
+    # Miscellanious Methods
+
+    def getAgentsDistribution(self) -> dict:
+        # Initialize a dictionary for the agents within each node
+        nodes = {}
+
+        # Loop over each node and get what contents it witholds
+        for idx, node in enumerate(self.graph.verts):
+            nodes.update({f"Node {idx}": node.getAgents()})
+
+        return nodes
+
+    def printPositions(self):
+        # Printing the dictionaries with the agents positions in the graph
+        print(self.truckPositions)
+        print(self.binPositions)
+
+    def getNodeAgents(self, nodeId: int) -> list:
+        # Fetch the agents inside a given node
+        return self.graph.verts[nodeId].getAgents()
 
 
 # https://toxigon.com/a-star-algorithm-explained

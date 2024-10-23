@@ -1,6 +1,5 @@
 from spade.agent import Agent
 
-
 class Edge:
     """
     Class representing an edge in a graph.
@@ -116,13 +115,24 @@ class Node:
 
         # Iterate through the agents
         for agent in self.getAgents():
+            # Get the formatted agent ID
+            agentId = str(agent.jid)
+
             # Add the trash to the truck
-            if str(agent.jid) == truckId:
+            if agentId == truckId:
                 agent.addTrash(binTrashLevel)
             # Clean the Bin
-            elif str(agent.jid) == binId:
+            elif agentId == binId:
                 agent.cleanBin()
-
+    
+    def performTruckRefuel(self, truckId:str) -> None:
+        # Loops through the agents in the node and updates the truck's fuel
+        for agent in self.getAgents():
+            # Get the formatted agent ID
+            agentId = str(agent.jid)
+            # Refuel Truck
+            if agentId == truckId:
+                agent.updateFuelLevel(agent.getMaxFuelLevel())
 
 class Graph:
     """
@@ -240,3 +250,14 @@ class Graph:
         := param: binId - Identification number of the bin involved in the extraction
         """
         self.verts[nodeId].performTrashExtraction(truckId, binId)
+
+    def performTruckRefuel(self, nodeId:int, truckId:str) -> None:
+        """
+        # Description
+            -> Performs refueling between a truck and a bin
+
+        := param: noduleId - Nodule in which the refueling must be performed
+        := param: truckId - Identification number of the truck
+        := param: binId - Identification number of the bin involved in the extraction
+        """
+        self.verts[nodeId].performTruckRefuel(truckId)
