@@ -112,7 +112,7 @@ class TruckMovement(CyclicBehaviour):
 
         # Check if I come across the trash deposit
         for locationId, nodeId in self.agent.env.trashDeposits.items():
-            if currentNode == nodeId:
+            if currentTruckPosition == nodeId:
                 # Deposit Trash in the Central
                 self.agent.depositTrash()
 
