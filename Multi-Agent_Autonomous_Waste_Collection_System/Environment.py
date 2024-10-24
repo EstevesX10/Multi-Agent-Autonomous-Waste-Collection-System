@@ -218,9 +218,9 @@ class Environment:
         # Return the trucks found
         return trucksFound
 
-    def performTrashExtraction(self, nodeId: int, truckId: str, binId: str) -> None:
+    def performTrashExtraction(self, nodeId: int, trashAmount:int, truckId: str, binId: str) -> None:
         # Perfrom trash extraction between a truck and a bin
-        self.graph.performTrashExtraction(nodeId, truckId, binId)
+        self.graph.performTrashExtraction(nodeId, trashAmount, truckId, binId)
 
     def performTrashRefuel(self, nodeId: int, truckId: str) -> None:
         # Refuel Truck

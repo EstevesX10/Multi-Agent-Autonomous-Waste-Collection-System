@@ -110,6 +110,15 @@ class TruckMovement(CyclicBehaviour):
         # Perceive environment data
         currentTruckPosition = self._getTruckPosition()
 
+        # Check if I come across the trash deposit
+        for locationId, nodeId in self.agent.env.trashDeposits.items():
+            if currentNode == nodeId:
+                # Deposit Trash in the Central
+                self.agent.depositTrash()
+
+                # Refuel Truck
+                self.agent.refuelTank()
+
         if len(self.agent.tasks) == 0:
             # Agent has no tasks
             return
@@ -146,7 +155,12 @@ class TruckMovement(CyclicBehaviour):
             )
             self.agent.logger.debug(f"is now at {newNodePos}")
 
-        elif cur_task == Tasks.PICKUP:
+        # PICK UP TRASH
+        elif Tasks.PICKUP in cur_task:
+            # Split the data and parse the trash amount
+            _, trashAmount = cur_task.split(' ')
+            trashAmount = int(trashAmount)
+
             # Get the Truck ID (formated)
             truckId = str(self.agent.jid)
 
@@ -157,10 +171,11 @@ class TruckMovement(CyclicBehaviour):
             binId = self.agent.env.getBins(currentNode)[0]
 
             # Perform Trash Extraction
-            self.agent.env.performTrashExtraction(currentNode, truckId, binId)
+            self.agent.env.performTrashExtraction(currentNode, trashAmount, truckId, binId)
 
-            self.agent.logger.info(f"extracted {amount} from {binId}")
+            self.agent.logger.info(f"extracted {trashAmount} from {binId}")
 
+        # REFUEL TANK
         elif cur_task == Tasks.REFUEL:
             # Get the Truck ID
             truckId = str(self.agent.jid)
@@ -419,6 +434,24 @@ class TruckAgent(SuperAgent):
             )
 
         return self._currentTrashLevel
+
+    def cleanTruck(self):
+        # Clean the truck by emptying its trash depposit
+        self._currentTrashLevel = 0
+
+    def depositTrash(self) -> None:
+        # Get current trash level
+        currentTrashLevel = self.getCurrentTrashLevel()
+
+        # Update Stats
+        Stats.trash_deposited += currentTrashLevel
+
+        # Clean Truck
+        self.cleanTruck()
+
+    def refuelTank(self):
+        # Refuels the truck tank
+        self._currentFuelLevel = self.getMaxFuelLevel()
 
     # ---------------------------------------------------------------------------------------
 

@@ -6,10 +6,11 @@ desastres aka deus - HARD
 - bloquear/desbloquear estradas
 
 acabar truckmovement - Medium
-- depositar na central
+- [DONE (?)] depositar na central e dar refuel
 - arranjar o pickup
-    coletar numero fixo
-    voltar para a central se algo der errado?
+    [DONE (?)] coletar numero fixo
+
+voltar para a central se algo der errado?
 
 cost function para trucks - Medium
 - tempo para reabastecer/esvaziar (se necessario)

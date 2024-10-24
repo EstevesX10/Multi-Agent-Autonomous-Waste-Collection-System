@@ -104,7 +104,7 @@ class Node:
         """
         return self.agents
 
-    def performTrashExtraction(self, truckId: str, binId: str) -> None:
+    def performTrashExtraction(self, trashAmount:int, truckId: str, binId: str) -> None:
         # Get the trash level of the bin
         binTrashLevel = [
             agent.getCurrentTrashLevel()
@@ -120,9 +120,9 @@ class Node:
             # Add the trash to the truck
             if agentId == truckId:
                 agent.addTrash(binTrashLevel)
-            # Clean the Bin
+            # Clean the Bin with the respective Trash Amount
             elif agentId == binId:
-                agent.cleanBin()
+                agent.removeTrash(trashAmount)
     
     def performTruckRefuel(self, truckId:str) -> None:
         # Loops through the agents in the node and updates the truck's fuel
@@ -239,16 +239,17 @@ class Graph:
         """
         self.verts[nodeId].removeAgent(agentId)
 
-    def performTrashExtraction(self, nodeId: int, truckId: str, binId: str) -> None:
+    def performTrashExtraction(self, nodeId: int, trashAmount:int, truckId: str, binId: str) -> None:
         """
         # Description
             -> Performs trash extraction between a truck and a bin
 
         := param: noduleId - Nodule in which the extraction must be performed
+        := param: trashAmount - Amount of trash to be considered when extracting trash.
         := param: truckId - Identification number of the truck involved in the extraction
         := param: binId - Identification number of the bin involved in the extraction
         """
-        self.verts[nodeId].performTrashExtraction(truckId, binId)
+        self.verts[nodeId].performTrashExtraction(trashAmount, truckId, binId)
 
     def performTruckRefuel(self, nodeId:int, truckId:str) -> None:
         """
