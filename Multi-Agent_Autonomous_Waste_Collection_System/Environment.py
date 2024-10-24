@@ -6,7 +6,7 @@ from spade.message import Message
 import asyncio
 import spade
 from dataclasses import dataclass
-from typing import Callable, Tuple, List
+from typing import Callable, Tuple, List, Union
 
 import numpy as np
 
@@ -48,6 +48,7 @@ class Road:
 
 class Environment:
     def __init__(self) -> None:
+        self.roads = []
         self.numberNodes, self.graph = self.__readGraph(
             "./EnvironmentLayouts/Layout1.txt"
         )
@@ -57,7 +58,6 @@ class Environment:
         self.agents = {}  # {'AgentID': 'Agent Object'} - CAN I DO THIS??
         self.trashDeposits = {"trashCentral": 0}  # MAYBE USE OTHERS
         self.refuelStations = {"trashCentral": 0}  # MAYBE USE OTHERS
-        self.roads = []
 
     # Graph Related Methods
 
@@ -254,7 +254,7 @@ class Environment:
 
     # Task Management Methods
 
-    def findPath(self, start: int, end: int) -> List[int] | None:
+    def findPath(self, start: int, end: int) -> Union[List[int], None]:
         return a_star(start, end, self.graph, lambda x, y: self.distanceMatrix[x][y])
 
     # Miscellanious Methods
