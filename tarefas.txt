@@ -9,8 +9,9 @@ acabar truckmovement - Medium
 - [DONE (?)] depositar na central e dar refuel
 - arranjar o pickup
     [DONE (?)] coletar numero fixo
-
-voltar para a central se algo der errado?
+    incluir qual bin coletar
+    voltar para a central se algo der errado?
+- se passar na central a qualquer momento entao descarrega?
 
 cost function para trucks - Medium
 - tempo para reabastecer/esvaziar (se necessario)
@@ -30,6 +31,7 @@ redistribuir tarefas quando truck morre - HARD
 
 trucks precisam previsao do combustivel e capacidade - Easy
 corrijir bug do manager confirm pq é cancelado por motivo nenhum - Easy
+contractNet by the book
 
 
 redistribuir tarefas de trucks mortos - Hard

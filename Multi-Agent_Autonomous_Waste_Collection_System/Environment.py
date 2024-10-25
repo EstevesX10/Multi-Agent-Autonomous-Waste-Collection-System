@@ -292,16 +292,22 @@ def a_star(start: int, goal: int, graph: Graph, heuristic: Callable[[int, int], 
     heapq.heappush(open_list, (0, start))
     came_from = {}
     g_score = {start: 0}
+    fuel_cost = {start: 0}
     f_score = {start: heuristic(start, goal)}
 
     while open_list:
         current = heapq.heappop(open_list)[1]
 
         if current == goal:
-            return reconstruct_path(came_from, current)
+            return (
+                reconstruct_path(came_from, current),
+                g_score[current],
+                fuel_cost[current],
+            )
 
         for neighbor in graph.adjsNodes(current):
             tentative_g_score = g_score[current] + neighbor.value.getDistance()
+            tentative_fuel = fuel_cost[current] + neighbor.value.getFuelConsumption()
 
             if (
                 neighbor.enode not in g_score
@@ -309,6 +315,7 @@ def a_star(start: int, goal: int, graph: Graph, heuristic: Callable[[int, int], 
             ):
                 came_from[neighbor.enode] = current
                 g_score[neighbor.enode] = tentative_g_score
+                fuel_cost[neighbor.enode] = tentative_fuel
                 f_score[neighbor.enode] = g_score[neighbor.enode] + heuristic(
                     neighbor.enode, goal
                 )

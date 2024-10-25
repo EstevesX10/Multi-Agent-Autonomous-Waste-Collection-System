@@ -147,7 +147,7 @@ class TruckMovement(CyclicBehaviour):
             await asyncio.sleep(duration)
 
             # Consume fuel
-            self.agent.consumeFuel(road.getFuelConsumption())
+            self.agent.consumeFuel(road.value.getFuelConsumption())
 
             # Update the truck position inside the Environment
             self.agent.env.updateTruckPosition(
@@ -267,18 +267,65 @@ class ManagerBehaviour(CyclicBehaviour):
 class AssigneeBehaviour(CyclicBehaviour):
     time: int = 0
 
-    # TODO: what should should action be?
-    def add_task(self, targetId: str, action):
-        target = self.agent.env.getBinPosition(targetId)
-        path = self.agent.env.findPath(self.agent.end_pos, target)
-        self.agent.tasks.extend(path[1:])
-        self.agent.tasks.append(action)
-        self.agent.end_pos = path[-1]
+    def add_task(self, targetId: str, action: str):
+        env = self.agent.env
 
-    # TODO: this
+        # Calculate path to bin
+        target = self.agent.env.getBinPosition(targetId)
+        path_bin, dist, required_fuel_bin = env.findPath(
+            self.agent.predicted_pos, target
+        )
+
+        # Calculate path from bin to central
+        closest_central = env.trashDeposits[
+            "trashCentral"
+        ]  # TODO: are there going to be more?
+        path_refuel, dist, required_fuel_refuel = env.findPath(target, closest_central)
+
+        # If there isnt enough fuel then refuel first
+        required_fuel = required_fuel_bin + required_fuel_refuel
+        if self.agent.predicted_fuel < required_fuel:
+            self.agent.tasks.extend(path_refuel[1:])
+            self.agent.tasks.append(Tasks.REFUEL)
+            self.agent.predicted_pos = path_refuel[-1]
+
+            # Recalculate path to bin
+            path_bin, dist, required_fuel_bin = env.findPath(
+                self.agent.predicted_pos, target
+            )
+
+        # Add task
+        self.agent.tasks.extend(path_bin[1:])
+        self.agent.tasks.append(action)
+        self.agent.predicted_pos = path_bin[-1]
+
     def calculate_cost(self, bin: str):
-        # Get the road(s) between the truck and the bin
-        return random.random()
+        env = self.agent.env
+
+        # Path to bin
+        target = env.getBinPosition(bin)
+        _, dist_bin, required_fuel_bin = env.findPath(self.agent.predicted_pos, target)
+
+        # Calculate path from bin to central
+        closest_central = env.trashDeposits[
+            "trashCentral"
+        ]  # TODO: are there going to be more?
+        path_refuel, dist_refuel, required_fuel_refuel = env.findPath(
+            target, closest_central
+        )
+
+        # If there isnt enough fuel then refuel first
+        refuel_cost = 0
+        required_fuel = required_fuel_bin + required_fuel_refuel
+        if self.agent.predicted_fuel < required_fuel:
+            # Recalculate path to bin
+            _, dist_bin, _ = env.findPath(path_refuel[-1], target)
+
+            refuel_cost = dist_refuel
+
+        cost = refuel_cost + dist_bin
+
+        return cost
 
     async def run(self):
         req = await self.receive(timeout=999)
@@ -338,7 +385,9 @@ class TruckAgent(SuperAgent):
         )  # Constant that determines how fast the truck loses its fuel
 
         self.tasks = []
-        self.end_pos = 0  # TODO: isto devia ser a posição inicial
+        self.predicted_pos = 0  # TODO: isto devia ser a posição inicial
+        self.predicted_fuel = self._currentFuelLevel
+        self.predicted_trash = self._currentTrashLevel
 
     async def setup(self):
         print(f"[SETUP] {self.jid}\n")
@@ -477,13 +526,13 @@ class TruckAgent(SuperAgent):
         return trashBin
 
     def consumeFuel(self, amount: int) -> int:
-        self._fuelLevel -= amount
+        self._currentFuelLevel -= amount
         Stats.fuel_consumed += amount
 
-        if self._fuelLevel <= 0:
+        if self._currentFuelLevel <= 0:
             # Truck is dead
             Stats.trucks_without_fuel += 1
             # TODO: redistribute tasks
             self.stop()
 
-        return self._fuelLevel
+        return self._currentFuelLevel
