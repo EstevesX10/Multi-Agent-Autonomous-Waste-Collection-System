@@ -14,8 +14,10 @@ acabar truckmovement - Medium
 - se passar na central a qualquer momento entao descarrega?
 
 cost function para trucks - Medium
-- tempo para reabastecer/esvaziar (se necessario)
-- distancia
+- tempo para reabastecer (se necessario) - feito
+- tempo para esvaziar (se necessario) - feito
+- distancia - feito
+- ter em conta se fica pelo caminho
 
 heuristic para A* - Easy
 - ja n me lembro (perguntar ao esteves)

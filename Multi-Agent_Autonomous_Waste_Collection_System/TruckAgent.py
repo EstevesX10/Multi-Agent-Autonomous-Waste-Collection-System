@@ -6,6 +6,7 @@ from spade.message import Message
 import asyncio
 import spade
 import random
+from typing import Tuple
 
 from Environment import Environment
 from BinAgent import BinAgent
@@ -158,7 +159,7 @@ class TruckMovement(CyclicBehaviour):
         # PICK UP TRASH
         elif Tasks.PICKUP in cur_task:
             # Split the data and parse the trash amount
-            _, trashAmount = cur_task.split(' ')
+            _, trashAmount = cur_task.split(" ")
             trashAmount = int(trashAmount)
 
             # Get the Truck ID (formated)
@@ -171,7 +172,9 @@ class TruckMovement(CyclicBehaviour):
             binId = self.agent.env.getBins(currentNode)[0]
 
             # Perform Trash Extraction
-            self.agent.env.performTrashExtraction(currentNode, trashAmount, truckId, binId)
+            self.agent.env.performTrashExtraction(
+                currentNode, trashAmount, truckId, binId
+            )
 
             self.agent.logger.info(f"extracted {trashAmount} from {binId}")
 
@@ -198,21 +201,21 @@ class TruckMovement(CyclicBehaviour):
 
 class ManagerBehaviour(CyclicBehaviour):
     # TODO: better heuristic
-    def choose_bin(self):
+    def choose_bin(self) -> Tuple[str, int]:
         bins = {}
         for jid, agent in self.agent.env.agents.items():
             if isinstance(agent, BinAgent):
                 bins[jid] = agent.getCurrentTrashLevel()
 
         choosen = max(bins.keys(), key=bins.__getitem__)
-        return choosen
+        return choosen, bins[choosen]
 
     async def run(self):
         # Request costs
-        bin = self.choose_bin()
+        bin, amount = self.choose_bin()
         msg = Message(
             metadata={"performative": "query"},
-            body=bin,
+            body=f"{bin} {amount}",
         )
         self.agent.logger.debug("is broadcasting")
         peers = await self.agent.broadcast(msg, TruckAgent, self)
@@ -240,7 +243,7 @@ class ManagerBehaviour(CyclicBehaviour):
         msg = Message(
             to=str(choosen),
             metadata={"performative": "request"},
-            body=f"{bin} {times[choosen]}",
+            body=f"{bin} {amount} {times[choosen]}",
         )
         self.agent.logger.debug(f"choose {msg.to} for {bin}")
         await self.send(msg)
@@ -267,7 +270,7 @@ class ManagerBehaviour(CyclicBehaviour):
 class AssigneeBehaviour(CyclicBehaviour):
     time: int = 0
 
-    def add_task(self, targetId: str, action: str):
+    def add_task(self, targetId: str, amount: int):
         env = self.agent.env
 
         # Calculate path to bin
@@ -282,9 +285,12 @@ class AssigneeBehaviour(CyclicBehaviour):
         ]  # TODO: are there going to be more?
         path_refuel, dist, required_fuel_refuel = env.findPath(target, closest_central)
 
-        # If there isnt enough fuel then refuel first
+        # If there isnt enough fuel or capacity then return to central first
         required_fuel = required_fuel_bin + required_fuel_refuel
-        if self.agent.predicted_fuel < required_fuel:
+        if (
+            self.agent.predicted_fuel < required_fuel
+            or self.agent.predicted_trash + amount > self.agent.getMaxTrashCapacity()
+        ):
             self.agent.tasks.extend(path_refuel[1:])
             self.agent.tasks.append(Tasks.REFUEL)
             self.agent.predicted_pos = path_refuel[-1]
@@ -296,10 +302,10 @@ class AssigneeBehaviour(CyclicBehaviour):
 
         # Add task
         self.agent.tasks.extend(path_bin[1:])
-        self.agent.tasks.append(action)
+        self.agent.tasks.append(f"{Tasks.PICKUP} {amount}")
         self.agent.predicted_pos = path_bin[-1]
 
-    def calculate_cost(self, bin: str):
+    def calculate_cost(self, bin: str, amount: int) -> int:
         env = self.agent.env
 
         # Path to bin
@@ -314,10 +320,13 @@ class AssigneeBehaviour(CyclicBehaviour):
             target, closest_central
         )
 
-        # If there isnt enough fuel then refuel first
+        # If there isnt enough fuel or capacity then return to central first
         refuel_cost = 0
         required_fuel = required_fuel_bin + required_fuel_refuel
-        if self.agent.predicted_fuel < required_fuel:
+        if (
+            self.agent.predicted_fuel < required_fuel
+            or self.agent.predicted_trash + amount > self.agent.getMaxTrashCapacity()
+        ):
             # Recalculate path to bin
             _, dist_bin, _ = env.findPath(path_refuel[-1], target)
 
@@ -336,7 +345,8 @@ class AssigneeBehaviour(CyclicBehaviour):
         if req.metadata["performative"] == "query":
             # Reply with the cost
             self.agent.logger.debug(f"got query from {req.sender}")
-            cost = self.calculate_cost(req.body)
+            bin, amount = req.body.split(" ")
+            cost = self.calculate_cost(bin, int(amount))
 
             resp = req.make_reply()
             resp.metadata = {"performative": "inform"}
@@ -344,14 +354,14 @@ class AssigneeBehaviour(CyclicBehaviour):
             await self.send(resp)
         elif req.metadata["performative"] == "request":
             # Add new task
-            bin, time = req.body.split()
+            bin, amount, time = req.body.split()
             resp = req.make_reply()
             resp.metadata = {"performative": "confirm"}
             if int(time) >= self.time:
                 # Request is valid
                 self.agent.logger.info(f"accepted {bin}")
 
-                self.add_task(bin, Tasks.PICKUP)
+                self.add_task(bin, int(amount))
                 self.agent.logger.debug(f"tasks are {self.agent.tasks}")
 
                 self.time += 1
