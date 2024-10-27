@@ -26,6 +26,7 @@ class GenerateTrashBehaviour(PeriodicBehaviour):
             )
         else:
             self.agent.updateTrashLevel(newTrashLevel)
+            self.agent._predictedTrash += generated_trash
             self.agent.logger.info(
                 f"Generated {generated_trash} units of trash. Total now: {self.agent.getCurrentTrashLevel()} units."
             )
@@ -106,6 +107,7 @@ class BinAgent(SuperAgent):
         self._currentTrashLevel = 0  # Empty Bin
         self._maxTrashCapacity = 30
         self._requestTrashExtractionThreshold = 5
+        self._predictedTrash = self._currentTrashLevel
         # self._mapPosition = (0,0)
 
     async def setup(self):
@@ -163,3 +165,6 @@ class BinAgent(SuperAgent):
             -> Updates the current bin's trash level
         """
         self._currentTrashLevel = newTrashLevel
+
+    def getPredictedTrashLevel(self) -> int:
+        return self._predictedTrash

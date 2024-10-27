@@ -13,94 +13,11 @@ from BinAgent import BinAgent
 from SuperAgent import SuperAgent
 from stats import Stats
 
-SIGNAL_STRENGTH = 10
-
 
 class Tasks:
     PICKUP = "pickup"
     REFUEL = "refuel"
     # TODO: more
-
-
-class PickUpBehaviour(OneShotBehaviour):
-    async def on_start(self, target):
-        print(f"Truck moving to {target}")
-        self.target = target
-
-    async def run(self):
-        await asyncio.wait(
-            self.agent.env.distanceMatrix[self.agent._mapPosition][self.target]
-        )
-
-        self.agent._mapPosition = self.target
-
-    async def on_end(self):
-        print(f"Behaviour finished with exit code {self.exit_code}.")
-
-
-class ListenerBehaviour(CyclicBehaviour):
-    async def on_start(self):
-        print("[START TRUCK LISTENER BEHAVIOUR]")
-
-    async def run(self):
-        # wait for a message for 10 seconds
-        msg = await self.receive(timeout=10)
-        if msg:
-            # If a message has been received, then we print it
-            print(f"{self.agent.jid}\t[RECEIVED MESSAGE] : {msg.body}")
-            self.target = msg.body
-
-
-class RequestTrashBehaviour(CyclicBehaviour):
-    async def run(self):
-        # Get the current node of the truck
-        truckCurrentNode = self.agent.env.truckPositions[str(self.agent.jid)]
-
-        # Get the bins which are inside the same node in the graph
-        availableBins = [
-            key
-            for (key, value) in self.agent.env.binPositions.items()
-            if value == truckCurrentNode
-        ]
-
-        # Go through all the truck's available bins
-        for availableBin in availableBins:
-            # <TODO: NOT SURE IF I SHOULD BE DOING THIS> Check if the available bin contains trash and if so, let's communicate
-
-            if not self.agent.env.agents[availableBin].isEmpty():
-                # Create a message requesting trash from the bin
-                msg = Message(to=availableBin)  # The trash bin agent's address
-                msg.body = "Requesting trash collection"
-                await self.send(msg)
-                print(f"[{str(self.agent.jid)}] Sent trash request to the bin.")
-
-                # Wait for the bin's response
-                response = await self.receive(timeout=10)  # 10-second timeout
-                if response:
-                    print(
-                        f"[{str(self.agent.jid)}] Received response from bin: {response.body}"
-                    )
-
-                    # Simulate collecting trash
-                    trashCollected = int(
-                        response.body
-                    )  # Assuming the bin sends the amount of trash
-                    self.agent.updateTrashLevel(
-                        self.agent.getCurrentTrashLevel() + trashCollected
-                    )
-                    print(
-                        f"[{str(self.agent.jid)}] Collected {trashCollected} units of trash. Total now: {self.agent.getCurrentTrashLevel()} units."
-                    )
-
-                    # Send confirmation to the bin
-                    confirm_msg = Message(to=availableBin)
-                    confirm_msg.body = f"Collected {trashCollected} units"
-                    await self.send(confirm_msg)
-                    print(
-                        f"[{str(self.agent.jid)}] Sent confirmation of collection to the bin."
-                    )
-                else:
-                    print(f"[{str(self.agent.jid)}] No response from bin.")
 
 
 class TruckMovement(CyclicBehaviour):
@@ -207,7 +124,7 @@ class ManagerBehaviour(CyclicBehaviour):
         bins = {}
         for jid, agent in self.agent.env.agents.items():
             if isinstance(agent, BinAgent):
-                bins[jid] = agent.getCurrentTrashLevel()
+                bins[jid] = agent.getPredictedTrashLevel()
 
         choosen = max(bins.keys(), key=bins.__getitem__)
         return choosen, bins[choosen]
@@ -262,6 +179,7 @@ class ManagerBehaviour(CyclicBehaviour):
 
         if confirm.body == "ok":
             self.agent.logger.debug(f"manager got confirmation from {confirm.sender}")
+            self.agent.env.agents[bin]._predictedTrash -= amount
             if confirm.sender == self.agent.jid:
                 self.agent.logger.debug("is no longer a manager")
                 self.agent.remove_behaviour(self)
