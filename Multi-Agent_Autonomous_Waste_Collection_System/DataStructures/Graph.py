@@ -1,5 +1,6 @@
 from spade.agent import Agent
 
+
 class Edge:
     """
     Class representing an edge in a graph.
@@ -49,6 +50,7 @@ class Edge:
 
         self.value = v
 
+
 class Node:
     """
     Class representing a node in a graph.
@@ -95,7 +97,7 @@ class Node:
         except:
             pass
 
-    def getAgents(self) -> list[Agent]:
+    def getAgents(self) -> list[str]:
         """
         # Description
             -> Returns the list with the Agents inside the current node.
@@ -104,34 +106,6 @@ class Node:
         """
         return self.agents
 
-    def performTrashExtraction(self, trashAmount:int, truckId: str, binId: str) -> None:
-        # Get the trash level of the bin
-        binTrashLevel = [
-            agent.getCurrentTrashLevel()
-            for agent in self.getAgents()
-            if str(agent.jid) == binId
-        ][0]
-
-        # Iterate through the agents
-        for agent in self.getAgents():
-            # Get the formatted agent ID
-            agentId = str(agent.jid)
-
-            # Add the trash to the truck
-            if agentId == truckId:
-                agent.addTrash(binTrashLevel)
-            # Clean the Bin with the respective Trash Amount
-            elif agentId == binId:
-                agent.removeTrash(trashAmount)
-    
-    def performTruckRefuel(self, truckId:str) -> None:
-        # Loops through the agents in the node and updates the truck's fuel
-        for agent in self.getAgents():
-            # Get the formatted agent ID
-            agentId = str(agent.jid)
-            # Refuel Truck
-            if agentId == truckId:
-                agent.updateFuelLevel(agent.getMaxFuelLevel())
 
 class Graph:
     """
@@ -239,32 +213,8 @@ class Graph:
         """
         self.verts[nodeId].removeAgent(agentId)
 
-    def performTrashExtraction(self, nodeId: int, trashAmount:int, truckId: str, binId: str) -> None:
-        """
-        # Description
-            -> Performs trash extraction between a truck and a bin
-
-        := param: noduleId - Nodule in which the extraction must be performed
-        := param: trashAmount - Amount of trash to be considered when extracting trash.
-        := param: truckId - Identification number of the truck involved in the extraction
-        := param: binId - Identification number of the bin involved in the extraction
-        """
-        self.verts[nodeId].performTrashExtraction(trashAmount, truckId, binId)
-
-    def performTruckRefuel(self, nodeId:int, truckId:str) -> None:
-        """
-        # Description
-            -> Performs refueling between a truck and a bin
-
-        := param: noduleId - Nodule in which the refueling must be performed
-        := param: truckId - Identification number of the truck
-        := param: binId - Identification number of the bin involved in the extraction
-        """
-        self.verts[nodeId].performTruckRefuel(truckId)
-
-
     # [NOTE] NOT BEING USED AT THE MOMENT
-    def blockRoad(self, startNode: int, endNode:int) -> None:
+    def blockRoad(self, startNode: int, endNode: int) -> None:
         """
         # Description
             -> Blocks a Road inside the graph
@@ -278,9 +228,9 @@ class Graph:
 
         # Block the Road
         node.blockRoad()
-    
+
     # [NOTE] NOT BEING USED AT THE MOMENT
-    def freeRoad(self, startNode: int, endNode:int) -> None:
+    def freeRoad(self, startNode: int, endNode: int) -> None:
         """
         # Description
             -> Frees a Road inside the graph
@@ -292,5 +242,5 @@ class Graph:
         # Find the Road on the Graph
         node = self.findEdge(startNode, endNode)
 
-        # Block the Road
+        # Free the Road
         node.freeRoad()

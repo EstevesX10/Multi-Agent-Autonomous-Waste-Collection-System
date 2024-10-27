@@ -109,10 +109,11 @@ class TruckMovement(CyclicBehaviour):
 
     async def run(self):
         # Perceive environment data
+        env = self.agent.env
         currentTruckPosition = self._getTruckPosition()
 
         # Check if I come across the trash deposit
-        for locationId, nodeId in self.agent.env.trashDeposits.items():
+        for locationId, nodeId in env.trashDeposits.items():
             if currentTruckPosition == nodeId:
                 # Deposit Trash in the Central
                 self.agent.depositTrash()
@@ -131,7 +132,7 @@ class TruckMovement(CyclicBehaviour):
             newNodePos = cur_task
 
             # Get the road for the next node
-            road = self.agent.env.graph.findEdge(currentTruckPosition, newNodePos)
+            road = env.graph.findEdge(currentTruckPosition, newNodePos)
             assert (
                 road is not None
             ), f"{self.agent.jid} is at {currentTruckPosition} and is trying to go to {newNodePos} but a road does NOT exist"
@@ -151,13 +152,13 @@ class TruckMovement(CyclicBehaviour):
             self.agent.consumeFuel(road.value.getFuelConsumption())
 
             # Update the truck position inside the Environment
-            self.agent.env.updateTruckPosition(
+            env.updateTruckPosition(
                 currentTruckPosition, newNodePos, str(self.agent.jid)
             )
             self.agent.logger.debug(f"is now at {newNodePos}")
 
         # PICK UP TRASH
-        elif Tasks.PICKUP in cur_task:
+        elif cur_task.startswith(Tasks.PICKUP):
             # Split the data and parse the trash amount
             _, trashAmount = cur_task.split(" ")
             trashAmount = int(trashAmount)
@@ -166,17 +167,18 @@ class TruckMovement(CyclicBehaviour):
             truckId = str(self.agent.jid)
 
             # Get the agent current node
-            currentNode = self.agent.env.getTruckPosition(truckId)
+            currentNode = env.getTruckPosition(truckId)
 
             # Get the first Bin in the current node
-            binId = self.agent.env.getBins(currentNode)[0]
+            binId = env.getBins(currentNode)[0]
 
             # Perform Trash Extraction
-            self.agent.env.performTrashExtraction(
-                currentNode, trashAmount, truckId, binId
-            )
+            env.performTrashExtraction(currentNode, trashAmount, truckId, binId)
 
-            self.agent.logger.info(f"extracted {trashAmount} from {binId}")
+            binAgent = env.agents[binId]
+            self.agent.logger.info(
+                f"Collected {trashAmount} units of trash. Total now: {self.agent.getCurrentTrashLevel()}/{self.agent.getMaxTrashCapacity()} units. Remaining in bin: {binAgent.getCurrentTrashLevel()}/{binAgent.getTrashMaxCapacity()}"
+            )
 
         # REFUEL TANK
         elif cur_task == Tasks.REFUEL:
@@ -184,7 +186,7 @@ class TruckMovement(CyclicBehaviour):
             truckId = str(self.agent.jid)
 
             # Get the agent current node
-            currentNode = self.agent.env.getTruckPosition(truckId)
+            currentNode = env.getTruckPosition(truckId)
 
             # Perform Trash Refueling
             self.agent.performTrashRefuel(currentNode, truckId)
@@ -273,8 +275,17 @@ class AssigneeBehaviour(CyclicBehaviour):
     def add_task(self, targetId: str, amount: int):
         env = self.agent.env
 
-        # Calculate path to bin
         target = self.agent.env.getBinPosition(targetId)
+
+        # If target in mid-way then cost is zero
+        if (
+            self.agent.predicted_trash + amount <= self.agent.getMaxTrashCapacity()
+            and target in self.agent.tasks
+        ):
+            index = self.agent.tasks.index(target)
+            self.agent.tasks.insert(index + 1, f"{Tasks.PICKUP} {amount}")
+
+        # Calculate path to bin
         path_bin, dist, required_fuel_bin = env.findPath(
             self.agent.predicted_pos, target
         )
@@ -308,8 +319,20 @@ class AssigneeBehaviour(CyclicBehaviour):
     def calculate_cost(self, bin: str, amount: int) -> int:
         env = self.agent.env
 
-        # Path to bin
+        # TODO: i will forget to remove this D:
+        if self.time >= 1:
+            return 99999
+
         target = env.getBinPosition(bin)
+
+        # If target in mid-way then cost is zero
+        if (
+            self.agent.predicted_trash + amount <= self.agent.getMaxTrashCapacity()
+            and target in self.agent.tasks
+        ):
+            return 0
+
+        # Path to bin
         _, dist_bin, required_fuel_bin = env.findPath(self.agent.predicted_pos, target)
 
         # Calculate path from bin to central
@@ -488,9 +511,6 @@ class TruckAgent(SuperAgent):
             # TODO: cancel everything and return to base
         else:
             self._currentTrashLevel = newTrashLevel
-            self.logger.info(
-                f"Collected {amount} units of trash. Total now: {self.getCurrentTrashLevel()} units."
-            )
 
         return self._currentTrashLevel
 

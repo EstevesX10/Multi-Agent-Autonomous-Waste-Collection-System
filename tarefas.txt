@@ -17,7 +17,7 @@ cost function para trucks - Medium
 - tempo para reabastecer (se necessario) - feito
 - tempo para esvaziar (se necessario) - feito
 - distancia - feito
-- ter em conta se fica pelo caminho
+- ter em conta se fica pelo caminho - feito
 
 heuristic para A* - Easy
 - ja n me lembro (perguntar ao esteves)
@@ -31,8 +31,8 @@ redistribuir tarefas quando truck morre - HARD
 - só acaba quando tudo estiver distribuido
 
 
-trucks precisam previsao do combustivel e capacidade - Easy
-corrijir bug do manager confirm pq é cancelado por motivo nenhum - Easy
+trucks precisam previsao do combustivel e capacidade - Easy - feito
+corrijir bug do manager confirm pq é cancelado por motivo nenhum - Unknown
 contractNet by the book
 
 

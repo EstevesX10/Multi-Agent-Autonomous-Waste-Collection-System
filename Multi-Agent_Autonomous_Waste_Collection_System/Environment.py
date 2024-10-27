@@ -189,8 +189,8 @@ class Environment:
         self.graph.blockRoad(endNode, startNode)
 
     def freeRoad(self, startNode: int, endNode: int) -> None:
-        self.graph.free(startNode, endNode)
-        self.graph.free(endNode, startNode)
+        self.graph.freeRoad(startNode, endNode)
+        self.graph.freeRoad(endNode, startNode)
 
     # Truck Related Methods
 
@@ -218,13 +218,40 @@ class Environment:
         # Return the trucks found
         return trucksFound
 
-    def performTrashExtraction(self, nodeId: int, trashAmount:int, truckId: str, binId: str) -> None:
-        # Perfrom trash extraction between a truck and a bin
-        self.graph.performTrashExtraction(nodeId, trashAmount, truckId, binId)
+    def performTrashExtraction(
+        self, nodeId: int, trashAmount: int, truckId: str, binId: str
+    ) -> None:
+        # Get the trash level of the bin
+        node = self.graph.verts[nodeId]
+        binTrashLevel = [
+            self.agents[agent].getCurrentTrashLevel()
+            for agent in node.getAgents()
+            if agent == binId
+        ][0]
+
+        if trashAmount > binTrashLevel:
+            self.agents[truckId].logger.warning(
+                f"tryed to collect {trashAmount} but there is only {binTrashLevel} at {binId}"
+            )
+            trashAmount = binTrashLevel
+
+        # Iterate through the agents
+        for agent in node.getAgents():
+            # Add the trash to the truck
+            if agent == truckId:
+                self.agents[agent].addTrash(trashAmount)
+            # Clean the Bin with the respective Trash Amount
+            elif agent == binId:
+                self.agents[agent].removeTrash(trashAmount)
 
     def performTrashRefuel(self, nodeId: int, truckId: str) -> None:
-        # Refuel Truck
-        self.graph.performTruckRefuel(nodeId, truckId)
+        # Loops through the agents in the node and updates the truck's fuel
+        node = self.graph.verts[nodeId]
+        for agentId in node.getAgents():
+            # Refuel Truck
+            if agentId == truckId:
+                agent = self.agents[agentId]
+                agent.updateFuelLevel(agent.getMaxFuelLevel())
 
     def _canRefuel(self, truckId: str) -> bool:
         # Checks all the available refuel stations
