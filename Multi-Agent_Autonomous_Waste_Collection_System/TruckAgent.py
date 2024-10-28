@@ -55,9 +55,9 @@ class TruckMovement(CyclicBehaviour):
             ), f"{self.agent.jid} is at {currentTruckPosition} and is trying to go to {newNodePos} but a road does NOT exist"
 
             # Update stats
-            Stats.truck_distance_traveled[
-                str(self.agent.jid)
-            ] += road.value.getDistance()
+            Stats.truck_distance_traveled[str(self.agent.jid)] += (
+                road.value.getDistance()
+            )
 
             # Get the path duration
             duration = road.value.getTravelTime()
@@ -119,14 +119,21 @@ class TruckMovement(CyclicBehaviour):
 
 
 class ManagerBehaviour(CyclicBehaviour):
-    # TODO: better heuristic
     def choose_bin(self) -> Tuple[str, int]:
         bins = {}
         for jid, agent in self.agent.env.agents.items():
             if isinstance(agent, BinAgent):
                 bins[jid] = agent.getPredictedTrashLevel()
 
-        choosen = max(bins.keys(), key=bins.__getitem__)
+        # Get the top 5 entries sorted by value
+        top_entries = sorted(bins.items(), key=lambda item: item[1], reverse=True)[:5]
+
+        # Separate keys and values
+        keys = [entry[0] for entry in top_entries]
+        values = [entry[1] for entry in top_entries]
+
+        # Choose a random key weighted by their values
+        choosen = random.choices(keys, weights=values, k=1)[0]
         return choosen, bins[choosen]
 
     async def run(self):
@@ -423,8 +430,8 @@ class TruckAgent(SuperAgent):
         if newTrashLevel > self.getMaxTrashCapacity():
             # Over capacity
             Stats.trucks_over_capacity += 1
-            self.agent.logger.critical(
-                f"tryed to collect {amount}. CurrentLevel: {self.getCurrentTrashLevel()} Capacity: {self.getTrashMaxCapacity()}. Returning to base"
+            self.logger.critical(
+                f"tryed to collect {amount}. CurrentLevel: {self.getCurrentTrashLevel()} Capacity: {self.getMaxTrashCapacity()}. Returning to base"
             )
             # TODO: cancel everything and return to base
         else:
