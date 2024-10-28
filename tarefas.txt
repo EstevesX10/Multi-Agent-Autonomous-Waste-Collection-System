@@ -34,6 +34,7 @@ redistribuir tarefas quando truck morre - HARD
 trucks precisam previsao do combustivel e capacidade - Easy - feito
 corrijir bug do manager confirm pq é cancelado por motivo nenhum - Unknown
 contractNet by the book
+oq fazer quando todas as bins estao vazias
 
 
 redistribuir tarefas de trucks mortos - Hard

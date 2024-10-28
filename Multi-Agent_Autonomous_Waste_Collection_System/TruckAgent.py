@@ -133,7 +133,11 @@ class ManagerBehaviour(CyclicBehaviour):
         values = [entry[1] for entry in top_entries]
 
         # Choose a random key weighted by their values
-        choosen = random.choices(keys, weights=values, k=1)[0]
+        if sum(values) != 0:
+            choosen = random.choices(keys, weights=values, k=1)[0]
+        else:
+            # TODO: decide what to do when all bins are empty
+            choosen = keys[0]
         return choosen, bins[choosen]
 
     async def run(self):
