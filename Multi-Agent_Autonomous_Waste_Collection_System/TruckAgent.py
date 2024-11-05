@@ -40,6 +40,16 @@ class TruckMovement(CyclicBehaviour):
 
         if len(self.agent.tasks) == 0:
             # Agent has no tasks
+            if not any(
+                isinstance(item, ManagerBehaviour) for item in self.agent.behaviours
+            ):
+                template = Template()
+                template.set_metadata("performative", "inform")
+                template2 = Template()
+                template2.set_metadata("performative", "confirm")
+                self.agent.add_behaviour(ManagerBehaviour(), template | template2)
+                self.agent.logger.info("has no tasks. Becoming a manager.")
+            await asyncio.sleep(1)
             return
 
         # Pop current task
@@ -55,9 +65,9 @@ class TruckMovement(CyclicBehaviour):
             ), f"{self.agent.jid} is at {currentTruckPosition} and is trying to go to {newNodePos} but a road does NOT exist"
 
             # Update stats
-            Stats.truck_distance_traveled[str(self.agent.jid)] += (
-                road.value.getDistance()
-            )
+            Stats.truck_distance_traveled[
+                str(self.agent.jid)
+            ] += road.value.getDistance()
 
             # Get the path duration
             duration = road.value.getTravelTime()
@@ -193,7 +203,7 @@ class ManagerBehaviour(CyclicBehaviour):
             self.agent.env.agents[bin]._predictedTrash -= amount
             if confirm.sender == self.agent.jid:
                 self.agent.logger.debug("is no longer a manager")
-                self.agent.remove_behaviour(self)
+                self.kill()
         elif confirm.body == "deny":
             self.agent.logger.debug(f"manager got denied from {confirm.sender}")
 
