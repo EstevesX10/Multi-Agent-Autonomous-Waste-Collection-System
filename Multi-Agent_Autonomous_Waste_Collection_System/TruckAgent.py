@@ -108,6 +108,9 @@ class TruckMovement(CyclicBehaviour):
             )
 
         # REFUEL TANK
+        # TODO: we do this every time the pass a central
+        # even if there is no task so maybe this is not necessary
+        # also there isnt a deposit task yet
         elif cur_task == Tasks.REFUEL:
             # Get the Truck ID
             truckId = str(self.agent.jid)
@@ -218,7 +221,7 @@ class ManagerBehaviour(CyclicBehaviour):
 class AssigneeBehaviour(CyclicBehaviour):
     time: int = 0
 
-    def add_task(self, targetId: str, amount: int):
+    def add_task(self, targetId: str, amount: int) -> bool:
         env = self.agent.env
 
         target = self.agent.env.getBinPosition(targetId)
@@ -232,15 +235,25 @@ class AssigneeBehaviour(CyclicBehaviour):
             self.agent.tasks.insert(index + 1, f"{Tasks.PICKUP} {amount}")
 
         # Calculate path to bin
-        path_bin, dist, required_fuel_bin = env.findPath(
-            self.agent.predicted_pos, target
-        )
+        path = env.findPath(self.agent.predicted_pos, target)
+        if path is None:
+            self.agent.logger.warning(
+                f"has no path from predicted {self.agent.predicted_pos} to {target}"
+            )
+            return False
+        path_bin, _, required_fuel_bin = path
 
         # Calculate path from bin to central
         closest_central = env.trashDeposits[
             "trashCentral"
         ]  # TODO: are there going to be more?
-        path_refuel, dist, required_fuel_refuel = env.findPath(target, closest_central)
+        path = env.findPath(target, closest_central)
+        if path is None:
+            self.agent.logger.warning(
+                f"has no path from {target=} to the central {closest_central}"
+            )
+            return False
+        path_refuel, _, required_fuel_refuel = path
 
         # If there isnt enough fuel or capacity then return to central first
         required_fuel = required_fuel_bin + required_fuel_refuel
@@ -250,17 +263,23 @@ class AssigneeBehaviour(CyclicBehaviour):
         ):
             self.agent.tasks.extend(path_refuel[1:])
             self.agent.tasks.append(Tasks.REFUEL)
+            # TODO: maybe add Tasks.Deposit
             self.agent.predicted_pos = path_refuel[-1]
 
             # Recalculate path to bin
-            path_bin, dist, required_fuel_bin = env.findPath(
-                self.agent.predicted_pos, target
-            )
+            path = env.findPath(self.agent.predicted_pos, target)
+            if path is None:
+                self.agent.logger.warning(
+                    f"has to refuel/deposit at central {self.agent.predicted_pos} but then cant reach {target}"
+                )
+                return False
+            path_bin, _, _ = path
 
         # Add task
         self.agent.tasks.extend(path_bin[1:])
         self.agent.tasks.append(f"{Tasks.PICKUP} {amount}")
         self.agent.predicted_pos = path_bin[-1]
+        return True
 
     def calculate_cost(self, bin: str, amount: int) -> int:
         env = self.agent.env
@@ -279,15 +298,19 @@ class AssigneeBehaviour(CyclicBehaviour):
             return 0
 
         # Path to bin
-        _, dist_bin, required_fuel_bin = env.findPath(self.agent.predicted_pos, target)
+        path = env.findPath(self.agent.predicted_pos, target)
+        if path is None:
+            return 99999
+        _, dist_bin, required_fuel_bin = path
 
         # Calculate path from bin to central
         closest_central = env.trashDeposits[
             "trashCentral"
         ]  # TODO: are there going to be more?
-        path_refuel, dist_refuel, required_fuel_refuel = env.findPath(
-            target, closest_central
-        )
+        path = env.findPath(target, closest_central)
+        if path is None:
+            return 99999
+        path_refuel, dist_refuel, required_fuel_refuel = path
 
         # If there isnt enough fuel or capacity then return to central first
         refuel_cost = 0
@@ -297,7 +320,10 @@ class AssigneeBehaviour(CyclicBehaviour):
             or self.agent.predicted_trash + amount > self.agent.getMaxTrashCapacity()
         ):
             # Recalculate path to bin
-            _, dist_bin, _ = env.findPath(path_refuel[-1], target)
+            path = env.findPath(path_refuel[-1], target)
+            if path is None:
+                return 99999
+            _, dist_bin, _ = path
 
             refuel_cost = dist_refuel
 
@@ -326,11 +352,9 @@ class AssigneeBehaviour(CyclicBehaviour):
             bin, amount, time = req.body.split()
             resp = req.make_reply()
             resp.metadata = {"performative": "confirm"}
-            if int(time) >= self.time:
+            if int(time) >= self.time and self.add_task(bin, int(amount)):
                 # Request is valid
                 self.agent.logger.info(f"accepted {bin}")
-
-                self.add_task(bin, int(amount))
                 self.agent.logger.debug(f"tasks are {self.agent.tasks}")
 
                 self.time += 1
