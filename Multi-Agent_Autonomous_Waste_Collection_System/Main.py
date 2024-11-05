@@ -48,6 +48,9 @@ async def main():
     # print("drone1 agent has stoped")
     # await spade.wait_until_finished(truck1)
 
+    while True:
+        await asyncio.sleep(1000)
+
 
 if __name__ == "__main__":
     spade.run(main())
