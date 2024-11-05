@@ -59,6 +59,8 @@ class Environment:
         self.trashDeposits = {"trashCentral": 0}  # MAYBE USE OTHERS
         self.refuelStations = {"trashCentral": 0}  # MAYBE USE OTHERS
 
+        self.time = 0
+
     # Graph Related Methods
 
     def __readGraph(
@@ -281,7 +283,7 @@ class Environment:
 
     # Task Management Methods
 
-    def findPath(self, start: int, end: int) -> Union[List[int], None]:
+    def findPath(self, start: int, end: int) -> Union[Tuple[List[int], int, int], None]:
         return a_star(start, end, self.graph, lambda x, y: self.distanceMatrix[x][y])
 
     # Miscellanious Methods
@@ -305,9 +307,9 @@ class Environment:
         # Fetch the agents inside a given node
         return self.graph.verts[nodeId].getAgents()
 
-    def _dayClock(self):
-        # EVERYTIME A EVENT HAPPENS UPDATE THE TIME/CLOCK?
-        pass
+    def tickTime(self):
+        self.time += 1
+        self.time %= 24
 
 
 # https://toxigon.com/a-star-algorithm-explained

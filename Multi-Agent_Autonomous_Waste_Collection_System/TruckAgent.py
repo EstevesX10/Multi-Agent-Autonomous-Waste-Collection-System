@@ -153,6 +153,11 @@ class ManagerBehaviour(CyclicBehaviour):
     async def run(self):
         # Request costs
         bin, amount = self.choose_bin()
+        if amount == 0:
+            # Theres no trash to collect
+            await asyncio.sleep(1)
+            return
+
         msg = Message(
             metadata={"performative": "query"},
             body=f"{bin} {amount}",
@@ -167,7 +172,9 @@ class ManagerBehaviour(CyclicBehaviour):
             # TODO: this can in some cases receive the confirmation msg... ?
             resp = await self.receive(timeout=10)
             if not resp:
-                self.agent.logger.debug("manager missed some replies")
+                self.agent.logger.debug(
+                    "manager missed some replies, continuing anyway..."
+                )
                 break
             cost, time = resp.body.split()
             costs[resp.sender] = cost

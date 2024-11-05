@@ -11,11 +11,30 @@ from Environment import Environment
 from SuperAgent import SuperAgent
 from stats import Stats
 
+TRASH_BY_TIME = [
+    # time, from, to
+    (0, 1, 3),
+    (6, 9, 12),
+    (10, 4, 5),
+    (15, 4, 7),
+    (19, 7, 10),
+    (22, 1, 3),
+]
+
 
 class GenerateTrashBehaviour(PeriodicBehaviour):
+    def trashByTime(self, time) -> int:
+        for x, start, end in TRASH_BY_TIME:
+            if x < time:
+                continue
+            return random.randint(start, end)
+
+        self.agent.logger.warning("{time} is not a valid time")
+        return 0
+
     async def run(self):
-        # Randomly generate trash (e.g., between 1 and 5 units)
-        generated_trash = random.randint(1, 5)
+        # Randomly generate trash
+        generated_trash = self.trashByTime(self.agent.env.time)
 
         newTrashLevel = self.agent.getCurrentTrashLevel() + generated_trash
         if newTrashLevel > self.agent.getTrashMaxCapacity():
