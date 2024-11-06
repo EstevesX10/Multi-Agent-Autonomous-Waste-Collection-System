@@ -6,9 +6,9 @@ desastres aka deus - HARD
 - bloquear/desbloquear estradas
 
 acabar truckmovement - Medium
-- [DONE (?)] depositar na central e dar refuel
+- depositar na central e dar refuel - feito
 - arranjar o pickup
-    [DONE (?)] coletar numero fixo
+    coletar numero fixo - feito
     incluir qual bin coletar
     voltar para a central se algo der errado?
 - se passar na central a qualquer momento entao descarrega?
@@ -37,5 +37,4 @@ contractNet by the book
 oq fazer quando todas as bins estao vazias - por enquanto só n manda ir lá pegar mas podemos fazer melhor
 
 
-redistribuir tarefas de trucks mortos - Hard
-
+garantir q existe combustivel suficiente para ir da central ao canto mais longe e voltar
