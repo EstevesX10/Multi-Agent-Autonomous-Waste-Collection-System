@@ -2,16 +2,18 @@ coletar estatisticas para performance - Easy
 - ir adicionando à medida q se vai fazendo
 
 desastres aka deus - HARD
-- alterar hora -> bins, transito, ... é influenciado por isso
-- bloquear/desbloquear estradas
+- alterar hora influencia:
+    bins - feito
+    transito
+- bloquear/desbloquear estradas - falta trucks terem isso em conta (e tb o A*?)
 
 acabar truckmovement - Medium
 - depositar na central e dar refuel - feito
 - arranjar o pickup
     coletar numero fixo - feito
-    incluir qual bin coletar
+    incluir qual bin coletar - feito
     voltar para a central se algo der errado?
-- se passar na central a qualquer momento entao descarrega?
+- se passar na central a qualquer momento entao descarrega? - feito
 
 cost function para trucks - Medium
 - tempo para reabastecer (se necessario) - feito
@@ -23,12 +25,13 @@ heuristic para A* - Easy
 - ja n me lembro (perguntar ao esteves)
 
 heuristic para escolher bin - Easy
-- bins precisam da previsao do seu lixo
-- escolher entre as mais cheias mas tentar evitar colisoes de todos managers escolher o msm
+- bins precisam da previsao do seu lixo - feito
+- escolher entre as mais cheias mas tentar evitar colisoes de todos managers escolher o msm - feito
 
 redistribuir tarefas quando truck morre - HARD
-- talvez uma "variante" do manager só q ja tem os bins escolhidos
-- só acaba quando tudo estiver distribuido
+- talvez uma "variante" do manager só q ja tem os bins escolhidos - feito
+- só acaba quando tudo estiver distribuido - feito
+- arranjar maneira de os outros virem coletar o lixo dele
 
 
 trucks precisam previsao do combustivel e capacidade - Easy - feito

@@ -10,12 +10,12 @@ class GodlyBehaviour(PeriodicBehaviour):
     def __init__(self, period: float, start_at: datetime | None = None):
         super().__init__(period, start_at)
 
-    async def blockRandomRoad(self):
+    def blockRandomRoad(self):
         # Get the roads
         availableRoads = self.agent.env.getRoads()
 
         # Sample a random road from the available ones
-        selectedRoad = random.sample(availableRoads, 1)
+        selectedRoad = random.choice(availableRoads)
 
         # Block the road
         selectedRoad.blockRoad()

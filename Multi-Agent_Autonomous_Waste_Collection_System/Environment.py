@@ -180,6 +180,12 @@ class Environment:
         # Save the agent instance
         self.agents.update({str(agent.jid): agent})
 
+    def removeTruck(self, truckId: str):
+        pos = self.truckPositions[truckId]
+        self.graph.removeAgentNode(pos, truckId)
+        del self.agents[truckId]
+        del self.truckPositions[truckId]
+
     # Road Related Methods
 
     def getRoads(self) -> list:

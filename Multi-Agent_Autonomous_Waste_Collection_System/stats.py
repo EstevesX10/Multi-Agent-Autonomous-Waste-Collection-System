@@ -15,3 +15,11 @@ class Stats:
 
     truck_collection_times: Dict[str, List[int]] = defaultdict(list)  # TODO:
     truck_distance_traveled: Dict[str, int] = defaultdict(lambda: 0)
+
+    @staticmethod
+    def print():
+        print("======= Stats =======")
+        for var_name in Stats.__annotations__:
+            # Get the value of the class variable by accessing it directly
+            var_value = getattr(Stats, var_name)
+            print(f"{var_name}: {var_value}")
