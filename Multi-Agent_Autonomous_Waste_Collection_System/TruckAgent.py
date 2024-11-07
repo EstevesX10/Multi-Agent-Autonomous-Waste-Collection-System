@@ -64,21 +64,24 @@ class TruckMovement(CyclicBehaviour):
             ), f"{self.agent.jid} is at {currentTruckPosition} and is trying to go to {newNodePos} but a road does NOT exist"
             road = road.value
             if not road.isAvailable():
-                print("road not available")
+                self.agent.logger.info(
+                    f"is at {currentTruckPosition} and tryed to move to {newNodePos} but the road not available. Becoming Stuck..."
+                )
                 self.agent.becomeStuck()
                 return
 
-            # Update stats
-            Stats.truck_distance_traveled[str(self.agent.jid)] += road.getDistance()
-
             # Get the path duration
             duration = road.getTravelTime()
+            self.agent.logger.debug(f"is moving to {newNodePos} in {duration} s")
 
             # Wait while the truck is moving
             await asyncio.sleep(duration)
 
             # Consume fuel
             self.agent.consumeFuel(road.getFuelConsumption())
+
+            # Update stats
+            Stats.truck_distance_traveled[str(self.agent.jid)] += road.getDistance()
 
             # Update the truck position inside the Environment
             env.updateTruckPosition(
@@ -241,6 +244,7 @@ class AssigneeBehaviour(CyclicBehaviour):
         if closest_central in path_bin:
             # Central is in path of the bin
             # we will always refuel and deposit
+            self.agent.tasks.extend(path_bin[1 : path_bin.index(closest_central) + 1])
             self.agent.predicted_pos = closest_central
             self.agent.predicted_fuel = self.agent.getMaxFuelLevel()
             self.agent.predicted_trash = 0
@@ -387,7 +391,7 @@ class StuckBehaviour(ManagerBehaviour):
 
     async def on_start(self):
         self.agent.logger.warning(
-            f"is stuck!!! Distributing current tasks: {self.agent.tasks}"
+            f"is stuck!!! Will recover: {self.canRecover}. Distributing current tasks: {self.agent.tasks}"
         )
         for b in self.agent.behaviours[:]:
             if (
@@ -439,10 +443,16 @@ class TruckAgent(SuperAgent):
         jid: str,
         password: str,
         environment: Environment,
+        startPos: int = -1,
         verify_security: bool = False,
     ) -> None:
         super().__init__(jid, password, verify_security)
         self.env = environment
+        self._startPos = (
+            startPos
+            if startPos != -1
+            else random.randint(0, len(self.env.graph.verts) - 1)
+        )
 
         self._currentTrashLevel = 10
         self._maxTrashCapacity = 50
@@ -455,11 +465,14 @@ class TruckAgent(SuperAgent):
         )  # Constant that determines how fast the truck loses its fuel
 
         self.tasks = []
-        self.predicted_pos = 0  # TODO: isto devia ser a posição inicial
+        self.predicted_pos = self._startPos  # TODO: isto devia ser a posição inicial
         self.predicted_fuel = self._currentFuelLevel
         self.predicted_trash = self._currentTrashLevel
 
     async def setup(self):
+        self.logger.info(f"is alive and started the shift at {self._startPos}")
+        self.env.addAgent(self._startPos, self)
+
         # Setting the Truck Movement Behaviour
         self.add_behaviour(TruckMovement())
 

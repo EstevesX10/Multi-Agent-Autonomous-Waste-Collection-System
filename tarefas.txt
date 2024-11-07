@@ -5,14 +5,14 @@ desastres aka deus - HARD
 - alterar hora influencia:
     bins - feito
     transito
-- bloquear/desbloquear estradas - falta trucks terem isso em conta (e tb o A*?)
+- bloquear/desbloquear estradas - falta trucks terem isso em conta (e tb o A*?) - feito
 
 acabar truckmovement - Medium
 - depositar na central e dar refuel - feito
 - arranjar o pickup
     coletar numero fixo - feito
     incluir qual bin coletar - feito
-    voltar para a central se algo der errado?
+    voltar para a central se algo der errado? - ele vira stuck - feito
 - se passar na central a qualquer momento entao descarrega? - feito
 
 cost function para trucks - Medium
@@ -35,7 +35,7 @@ redistribuir tarefas quando truck morre - HARD
 
 
 trucks precisam previsao do combustivel e capacidade - Easy - feito
-corrijir bug do manager confirm pq é cancelado por motivo nenhum - Unknown
+corrijir bug do manager confirm pq é cancelado por motivo nenhum - Unknown - feito?
 contractNet by the book
 oq fazer quando todas as bins estao vazias - por enquanto só n manda ir lá pegar mas podemos fazer melhor
 

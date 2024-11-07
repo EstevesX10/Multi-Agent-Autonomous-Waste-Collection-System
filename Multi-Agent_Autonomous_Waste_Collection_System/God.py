@@ -1,4 +1,7 @@
 from datetime import datetime
+from config import Config
+from stats import Stats
+from TruckAgent import TruckAgent
 from SuperAgent import SuperAgent
 import asyncio
 from Environment import Environment
@@ -34,6 +37,7 @@ class GodlyBehaviour(PeriodicBehaviour):
     async def run(self):
         # Randomly removes a road
         randomRoad = self.blockRandomRoad()
+        Stats.disasters += 1
 
         asyncio.create_task(self.freeRoad(randomRoad))
 
@@ -42,6 +46,33 @@ class TimeBehaviour(PeriodicBehaviour):
     async def run(self):
         self.agent.env.tickTime()
         self.agent.logger.info(f"has determined its {self.agent.env.time}:00")
+
+
+class DestroyTruckBehaviour(PeriodicBehaviour):
+    async def run(self):
+        trucks = [
+            agent
+            for agent in self.agent.env.agents.values()
+            if isinstance(agent, TruckAgent)
+        ]
+        if len(trucks) == 0:
+            self.agent.logger.info(
+                "found no trucks to destroy... and is not happy about it."
+            )
+            return
+        victim = random.choice(trucks)
+        self.agent.logger.info(f"has unleashed its wrath on {victim.jid}")
+        victim.becomeStuck(canRecover=False)
+        Stats.disasters += 1
+
+        await asyncio.sleep(Config.secondsForNewTruck)
+
+        # TODO: get a decent jid
+        truck = TruckAgent(
+            f"truck{random.randint(0,999999)}@localhost", "password", self.agent.env
+        )
+        self.agent.logger.info("has brought a new truck to this world")
+        await truck.start(auto_register=True)
 
 
 class God(SuperAgent):
@@ -60,5 +91,8 @@ class God(SuperAgent):
         print(f"[SETUP] {self.jid}\n")
 
         # Adding a random trash generation (Every 60s)
-        self.add_behaviour(GodlyBehaviour(period=60))
-        self.add_behaviour(TimeBehaviour(period=30))
+        self.add_behaviour(GodlyBehaviour(period=Config.secondsBetweenDisasters))
+        self.add_behaviour(TimeBehaviour(period=Config.secondsPerHour))
+        self.add_behaviour(
+            DestroyTruckBehaviour(period=Config.secondsBetweenTruckDeath)
+        )

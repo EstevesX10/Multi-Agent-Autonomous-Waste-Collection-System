@@ -22,17 +22,8 @@ async def main():
     truck2 = TruckAgent("truck2@localhost", "password", env)
     # truck3 = TruckAgent("truck3@localhost", "password", env)
     # truck4 = TruckAgent("truck4@localhost", "password", env)
-    bin1 = BinAgent("bin1@localhost", "password", env)
+    bin1 = BinAgent("bin1@localhost", "password", env, startPos=0)
     bin2 = BinAgent("bin2@localhost", "password", env)
-
-    # Insert the Agents into the environment
-    # TODO: maybe the agents should add themselves at setup to avoid anoying messages
-    env.addAgent(nodeId=0, agent=truck1)
-    env.addAgent(nodeId=0, agent=truck2)
-    # env.addAgent(nodeId=0, agent=truck3)
-    # env.addAgent(nodeId=0, agent=truck4)
-    env.addAgent(nodeId=1, agent=bin1)
-    env.addAgent(nodeId=2, agent=bin2)
 
     # Print the agents per nodes of the network
     print(env.getAgentsDistribution())

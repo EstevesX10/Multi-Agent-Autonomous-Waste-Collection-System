@@ -56,10 +56,16 @@ class BinAgent(SuperAgent):
         jid: str,
         password: str,
         environment: Environment,
+        startPos: int = -1,
         verify_security: bool = False,
     ) -> None:
         super().__init__(jid, password, verify_security)
         self.env = environment
+        self._startPos = (
+            startPos
+            if startPos != -1
+            else random.randint(0, len(self.env.graph.verts) - 1)
+        )
         self._currentTrashLevel = 0  # Empty Bin
         self._maxTrashCapacity = 30
         self._requestTrashExtractionThreshold = 5
@@ -68,6 +74,9 @@ class BinAgent(SuperAgent):
 
     async def setup(self):
         print(f"[SETUP] {self.jid}\n")
+        self.logger.info(f"has been registed at {self._startPos}")
+
+        self.env.addAgent(self._startPos, self)
 
         # Adding a random trash generation (Every 30s)
         self.add_behaviour(GenerateTrashBehaviour(period=30))
