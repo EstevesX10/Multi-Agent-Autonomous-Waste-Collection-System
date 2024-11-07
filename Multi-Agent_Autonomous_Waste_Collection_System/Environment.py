@@ -341,6 +341,8 @@ def a_star(start: int, goal: int, graph: Graph, heuristic: Callable[[int, int], 
             )
 
         for neighbor in graph.adjsNodes(current):
+            if not neighbor.value.isAvailable():
+                continue
             tentative_g_score = g_score[current] + neighbor.value.getDistance()
             tentative_fuel = fuel_cost[current] + neighbor.value.getFuelConsumption()
 

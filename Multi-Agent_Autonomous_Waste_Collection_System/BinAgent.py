@@ -121,7 +121,7 @@ class BinAgent(SuperAgent):
     def decreasePredictedTrashLevel(self, amount: int) -> int:
         newAmount = self._predictedTrash - amount
         if newAmount < 0:
-            self.agent.logger.warning(
+            self.logger.warning(
                 "predicted trash level is negative! Setting to 0 and continuing anyway..."
             )
         self._predictedTrash = max(newAmount, 0)

@@ -62,20 +62,28 @@ class TruckMovement(CyclicBehaviour):
             assert (
                 road is not None
             ), f"{self.agent.jid} is at {currentTruckPosition} and is trying to go to {newNodePos} but a road does NOT exist"
+            road = road.value
+            if not road.isAvailable():
+                print("road not available")
+                self.agent.becomeStuck()
+                return
+
+            # TODO: i will forget to remove this
+            if cur_task == 1:
+                self.agent.becomeStuck()
+                return
 
             # Update stats
-            Stats.truck_distance_traveled[
-                str(self.agent.jid)
-            ] += road.value.getDistance()
+            Stats.truck_distance_traveled[str(self.agent.jid)] += road.getDistance()
 
             # Get the path duration
-            duration = road.value.getTravelTime()
+            duration = road.getTravelTime()
 
             # Wait while the truck is moving
             await asyncio.sleep(duration)
 
             # Consume fuel
-            self.agent.consumeFuel(road.value.getFuelConsumption())
+            self.agent.consumeFuel(road.getFuelConsumption())
 
             # Update the truck position inside the Environment
             env.updateTruckPosition(
@@ -118,6 +126,10 @@ class TruckMovement(CyclicBehaviour):
 
 
 class ManagerBehaviour(CyclicBehaviour):
+    def __init__(self):
+        super().__init__()
+        self._shouldDecreaseBin = True
+
     def choose_bin(self) -> Tuple[str, int]:
         bins = {}
         for jid, agent in self.agent.env.agents.items():
@@ -179,7 +191,7 @@ class ManagerBehaviour(CyclicBehaviour):
         msg = Message(
             to=str(choosen),
             metadata={"performative": "request"},
-            body=f"{bin} {amount} {times[choosen]}",
+            body=f"{bin} {amount} {times[choosen]} {self._shouldDecreaseBin}",
         )
         self.agent.logger.debug(f"choose {msg.to} for {bin}")
         await self.send(msg)
@@ -204,7 +216,7 @@ class ManagerBehaviour(CyclicBehaviour):
 class AssigneeBehaviour(CyclicBehaviour):
     time: int = 0
 
-    def add_task(self, targetId: str, amount: int) -> bool:
+    def add_task(self, targetId: str, amount: int, decreaseBinPred: bool) -> bool:
         env = self.agent.env
 
         target = self.agent.env.getBinPosition(targetId)
@@ -215,7 +227,7 @@ class AssigneeBehaviour(CyclicBehaviour):
             and target in self.agent.tasks
         ):
             index = self.agent.tasks.index(target)
-            self.agent.tasks.insert(index + 1, f"{Tasks.PICKUP} {amount}")
+            self.agent.tasks.insert(index + 1, f"{Tasks.PICKUP} {targetId} {amount}")
 
         # Calculate path to bin
         path = env.findPath(self.agent.predicted_pos, target)
@@ -284,7 +296,8 @@ class AssigneeBehaviour(CyclicBehaviour):
         self.agent.predicted_pos = path_bin[-1]
         self.agent.predicted_fuel -= required_fuel_bin
         self.agent.predicted_trash += amount
-        self.agent.env.agents[targetId].decreasePredictedTrashLevel(amount)
+        if decreaseBinPred:
+            self.agent.env.agents[targetId].decreasePredictedTrashLevel(amount)
         return True
 
     def calculate_cost(self, bin: str, amount: int) -> int:
@@ -334,15 +347,15 @@ class AssigneeBehaviour(CyclicBehaviour):
         return cost
 
     async def run(self):
-        req = await self.receive(timeout=999)
+        req = await self.receive(timeout=5)
         if not req:
             # Request timed out
             return
 
         if req.metadata["performative"] == "query":
             # Reply with the cost
-            self.agent.logger.debug(f"got query from {req.sender}")
             bin, amount = req.body.split(" ")
+            self.agent.logger.debug(f"got query from {req.sender} for {bin}")
             cost = self.calculate_cost(bin, int(amount))
 
             resp = req.make_reply()
@@ -351,10 +364,12 @@ class AssigneeBehaviour(CyclicBehaviour):
             await self.send(resp)
         elif req.metadata["performative"] == "request":
             # Add new task
-            bin, amount, time = req.body.split()
+            bin, amount, time, decreaseBinPred = req.body.split()
             resp = req.make_reply()
             resp.metadata = {"performative": "confirm"}
-            if int(time) >= self.time and self.add_task(bin, int(amount)):
+            if int(time) >= self.time and self.add_task(
+                bin, int(amount), decreaseBinPred == "True"
+            ):
                 # Request is valid
                 self.agent.logger.info(f"accepted {bin} from {req.sender}")
                 self.agent.logger.debug(f"tasks are {self.agent.tasks}")
@@ -369,30 +384,58 @@ class AssigneeBehaviour(CyclicBehaviour):
 
 
 class StuckBehaviour(ManagerBehaviour):
-    def __init__(self, turnsToBin: bool):
+    def __init__(self, canRecover: bool = True):
+        super().__init__()
+        self._shouldDecreaseBin = False
         self.toDistribute = []
-        self.turnsToBin = turnsToBin  # TODO: this
+        self.canRecover = canRecover
 
     async def on_start(self):
         self.agent.logger.warning(
             f"is stuck!!! Distributing current tasks: {self.agent.tasks}"
         )
-        for b in self.agent.behaviours:
-            if isinstance(b, AssigneeBehaviour) or type(b) is ManagerBehaviour:
-                self.agent.remove_behaviour(b)
+        for b in self.agent.behaviours[:]:
+            if (
+                isinstance(b, (AssigneeBehaviour, TruckMovement))
+                or type(b) is ManagerBehaviour
+            ):
+                # self.agent.remove_behaviour(b)
+                b.kill()
 
-        self.toDistribute = [filter(lambda x: x.startswith(Tasks.PICKUP))]
+        self.toDistribute = list(
+            filter(lambda x: str(x).startswith(Tasks.PICKUP), self.agent.tasks)
+        )
+        self.recover_pos = self.agent.env.getTruckPosition(str(self.agent.jid))
+
+        self.agent.tasks.clear()
+        self.agent.predicted_pos = self.agent.env.getTruckPosition(str(self.agent.jid))
+        self.agent.predicted_fuel = self.agent.getCurrentFuelLevel()
+        self.agent.predicted_trash = self.agent.getCurrentTrashLevel()
+
         self.agent.env.removeTruck(str(self.agent.jid))
 
-    def choose_bin(self) -> Tuple[str, int]:
-        try:
-            task = self.toDistribute.pop(0)
-        except IndexError:
-            self.agent.stop()
-            return "invalid", 0
+        # Receive all pending messages
+        while await self.receive(timeout=10):
+            pass
 
+    def choose_bin(self) -> Tuple[str, int]:
+        task = self.toDistribute.pop(0)
         _, binId, trashAmount = task.split(" ")
         return binId, trashAmount
+
+    async def run(self):
+        if len(self.toDistribute) == 0:
+            if self.canRecover:
+                self.agent.logger.info("recovered and is back operational!")
+                self.agent.becomeAssignee()
+                self.agent.add_behaviour(TruckMovement())
+                self.agent.env.addAgent(nodeId=self.recover_pos, agent=self.agent)
+                self.kill()
+            else:
+                await self.agent.stop()
+            return
+
+        await super().run()
 
 
 class TruckAgent(SuperAgent):
@@ -428,11 +471,8 @@ class TruckAgent(SuperAgent):
         # Add manager behaviour
         self.becomeManager()
 
-        template = Template()
-        template.set_metadata("performative", "query")
-        template2 = Template()
-        template2.set_metadata("performative", "request")
-        self.add_behaviour(AssigneeBehaviour(), template | template2)
+        # Add assignee behaviour
+        self.becomeAssignee()
 
     # Getters
 
@@ -554,9 +594,16 @@ class TruckAgent(SuperAgent):
         template2.set_metadata("performative", "confirm")
         self.add_behaviour(ManagerBehaviour(), template | template2)
 
-    def becomeStuck(self):
+    def becomeStuck(self, canRecover: bool = True):
         template = Template()
         template.set_metadata("performative", "inform")
         template2 = Template()
         template2.set_metadata("performative", "confirm")
-        self.add_behaviour(StuckBehaviour(), template | template2)
+        self.add_behaviour(StuckBehaviour(canRecover), template | template2)
+
+    def becomeAssignee(self):
+        template = Template()
+        template.set_metadata("performative", "query")
+        template2 = Template()
+        template2.set_metadata("performative", "request")
+        self.add_behaviour(AssigneeBehaviour(), template | template2)
