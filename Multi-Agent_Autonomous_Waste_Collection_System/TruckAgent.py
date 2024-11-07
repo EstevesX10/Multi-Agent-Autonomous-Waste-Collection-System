@@ -68,11 +68,6 @@ class TruckMovement(CyclicBehaviour):
                 self.agent.becomeStuck()
                 return
 
-            # TODO: i will forget to remove this
-            if cur_task == 1:
-                self.agent.becomeStuck()
-                return
-
             # Update stats
             Stats.truck_distance_traveled[str(self.agent.jid)] += road.getDistance()
 
