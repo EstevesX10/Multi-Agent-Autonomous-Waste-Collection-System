@@ -13,6 +13,10 @@ import numpy as np
 from DataStructures import Graph
 from stats import Stats
 
+import pygame
+import networkx as nx
+import random
+
 # from BinAgent import (BinAgent)
 # from TruckAgent import (TruckAgent)
 
@@ -47,9 +51,9 @@ class Road:
 
 
 class Environment:
-    def __init__(self) -> None:
+    def __init__(self, useUI=False) -> None:
         self.roads = []
-        self.numberNodes, self.graph = self.__readGraph(
+        self.numberNodes, self.graph, self.positions = self.__readGraph(
             "./EnvironmentLayouts/Layout1.txt"
         )
         self.distanceMatrix, self.parentMatrix = self.__calculateMatrices()
@@ -60,6 +64,41 @@ class Environment:
         self.refuelStations = {"trashCentral": 0}  # MAYBE USE OTHERS
 
         self.time = 0
+
+        if useUI:
+            # Initialize Pygame
+            self.screen = pygame.display.set_mode((800, 800))
+            pygame.display.set_caption("Agent Environment Visualization")
+            self.clock = pygame.time.Clock()
+
+            # Setup graph and scale node positions
+            self.draw_graph()
+
+    def draw_graph(self):
+        """Draws the entire environment: nodes, edges, trucks, and bins."""
+        self.screen.fill((255, 255, 255))  # White background
+
+        # Draw edges
+        for startNode in range(self.numberNodes):
+            for endNode in range(self.numberNodes):
+                if (self.graph.findEdge(startNode, endNode) is not None):
+                    x1, y1 = self.positions[startNode]
+                    x2, y2 = self.positions[endNode]
+                    pygame.draw.line(self.screen, (150, 150, 150), (x1, y1), (x2, y2), 2)
+
+        # Draw nodes
+        for node, (x, y) in self.positions.items():
+            pygame.draw.circle(self.screen, (173, 216, 230), (int(x), int(y)), 10)  # light blue
+
+        # Draw trucks in red
+        for truck_id, node_id in self.truckPositions.items():
+            x, y = self.positions[node_id]
+            pygame.draw.circle(self.screen, (255, 0, 0), (int(x), int(y)), 15)  # red for trucks
+
+        # Draw bins in green
+        for bin_id, node_id in self.binPositions.items():
+            x, y = self.positions[node_id]
+            pygame.draw.circle(self.screen, (0, 255, 0), (int(x), int(y)), 10)  # green for bins
 
     # Graph Related Methods
 
@@ -74,8 +113,16 @@ class Environment:
 
             # Iterate through the remaining lines while saving the given edges / roads
             numberNodes = int(lines[0])
+
+            # Read the positions of each node in the UI
+            nodePositionsUI = {}
+            for node_id in range(numberNodes):
+                x, y = map(int, lines[node_id + 1].split(" "))
+                nodePositionsUI.update({node_id:(x, y)})
+
+            # Read the Graph Connections
             newGraph = Graph(numberNodes)
-            for line in lines[1:]:
+            for line in lines[numberNodes + 1:]:
                 if len(line) == 0:
                     continue
 
@@ -102,7 +149,7 @@ class Environment:
             print(f"Number of Nodes Added to the Network: {newGraph.numVertices()}")
             print(f"Number of Edges Added to the Network: {newGraph.numEdges()}")
 
-        return numberNodes, newGraph
+        return numberNodes, newGraph, nodePositionsUI
 
     def __calculateMatrices(self) -> Tuple[np.ndarray, np.ndarray]:
         # Create an empty matrix to store all the distances between nodes in the graph

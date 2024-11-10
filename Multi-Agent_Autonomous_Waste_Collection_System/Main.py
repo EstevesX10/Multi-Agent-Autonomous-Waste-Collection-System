@@ -2,6 +2,7 @@
 import asyncio
 from stats import Stats
 import spade
+import pygame
 
 # Import developed classes
 from Environment import Environment
@@ -9,11 +10,12 @@ from TruckAgent import TruckAgent
 from BinAgent import BinAgent
 from God import God
 
+useUI = True
 
 # Main Loop
 async def main():
     # Initializing the environment
-    env = Environment()
+    env = Environment(useUI=useUI)
     god = God("god@localhost", "password", env)
     await god.start(auto_register=True)
 
@@ -36,12 +38,21 @@ async def main():
     # await truck3.start(auto_register=True)
     # await truck4.start(auto_register=True)
 
+    if useUI:
+        # Draw environment
+        env.draw_graph()
+        pygame.display.flip()
+
     # the main function MUST NOT RETURN!
     while True:
         await asyncio.sleep(1000)
 
 
 if __name__ == "__main__":
+    # Initialize Pygame
+    if useUI:
+        pygame.init()
+
     # We need to do this because:
     # - spade will kill random tasks for no reason and it will, obviously, lead to many many many stupid bugs we cant control
     # - catch KeyboardInterrupt: the default run catches the exception and doesnt exit
