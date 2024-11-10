@@ -452,6 +452,18 @@ class StuckBehaviour(ManagerBehaviour):
         self.agent.predicted_fuel = self.agent.getCurrentFuelLevel()
         self.agent.predicted_trash = self.agent.getCurrentTrashLevel()
 
+        if not self.canRecover:
+            # Create a temporary bin with the trash that was carrying
+            bin = BinAgent(
+                str(self.agent.jid).replace("truck", "stuck"),
+                "password",
+                self.agent.env,
+                startTrash=self.agent.getCurrentTrashLevel(),
+                generatesTrash=False,
+                startPos=self.agent.env.getTruckPosition(str(self.agent.jid)),
+            )
+            await bin.start(auto_register=True)
+
         self.agent.env.removeTruck(str(self.agent.jid))
 
         # Receive all pending messages

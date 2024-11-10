@@ -51,12 +51,20 @@ class GenerateTrashBehaviour(PeriodicBehaviour):
             )
 
 
+class DestoyWhenEmptyBehaviour(PeriodicBehaviour):
+    async def run(self):
+        if self.agent._currentTrashLevel <= 0:
+            await self.agent.stop()
+
+
 class BinAgent(SuperAgent):
     def __init__(
         self,
         jid: str,
         password: str,
         environment: Environment,
+        startTrash: int = 0,
+        generatesTrash: bool = True,
         startPos: int = -1,
         verify_security: bool = False,
     ) -> None:
@@ -67,11 +75,10 @@ class BinAgent(SuperAgent):
             if startPos != -1
             else random.randint(0, len(self.env.graph.verts) - 1)
         )
-        self._currentTrashLevel = 0  # Empty Bin
+        self._currentTrashLevel = startTrash
         self._maxTrashCapacity = 30
-        self._requestTrashExtractionThreshold = 5
         self._predictedTrash = self._currentTrashLevel
-        # self._mapPosition = (0,0)
+        self._generatesTrash = generatesTrash
 
     async def setup(self):
         print(f"[SETUP] {self.jid}\n")
@@ -79,8 +86,11 @@ class BinAgent(SuperAgent):
 
         self.env.addAgent(self._startPos, self)
 
-        # Adding a random trash generation (Every 30s)
-        self.add_behaviour(GenerateTrashBehaviour(period=30))
+        if self._generatesTrash:
+            # Adding a random trash generation (Every 30s)
+            self.add_behaviour(GenerateTrashBehaviour(period=30))
+        else:
+            self.add_behaviour(DestoyWhenEmptyBehaviour(period=30))
 
     def getCurrentTrashLevel(self) -> int:
         """
