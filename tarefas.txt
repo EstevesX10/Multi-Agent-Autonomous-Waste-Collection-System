@@ -22,7 +22,7 @@ cost function para trucks - Medium
 - ter em conta se fica pelo caminho - feito
 
 heuristic para A* - Easy
-- ja n me lembro (perguntar ao esteves)
+- ja n me lembro (perguntar ao esteves) - feito?
 
 heuristic para escolher bin - Easy
 - bins precisam da previsao do seu lixo - feito
@@ -44,10 +44,10 @@ maybe deposit/refuel/pickup should take some time - easy
 numero maximo de tarefas - easy
 
 BUGS:
-- as vezes os trucks tentam ir para onde estao. ex: ir de 2 para 2.
+- as vezes os trucks tentam ir para onde estao. ex: ir de 2 para 2. - feito
     solução: detetar estes casos é facil e podemos simplesmente n fazer nada mas...
         isto n devia ser possivel acontecer e é sinal q existe um problema algures
-- trucks tentam pegar lixo para alem da capacidade
+- trucks tentam pegar lixo para alem da capacidade - feito?
 
 
 garantir q existe combustivel suficiente para ir da central ao canto mais longe e voltar

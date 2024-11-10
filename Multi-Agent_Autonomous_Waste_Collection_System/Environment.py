@@ -14,7 +14,6 @@ from DataStructures import Graph
 from stats import Stats
 
 import pygame
-import networkx as nx
 import random
 
 # from BinAgent import (BinAgent)
@@ -97,11 +96,11 @@ class Environment:
             nodePositionsUI = {}
             for node_id in range(numberNodes):
                 x, y = map(int, lines[node_id + 1].split(" "))
-                nodePositionsUI.update({node_id:(x, y)})
+                nodePositionsUI.update({node_id: (x, y)})
 
             # Read the Graph Connections
             newGraph = Graph(numberNodes)
-            for line in lines[numberNodes + 1:]:
+            for line in lines[numberNodes + 1 :]:
                 if len(line) == 0:
                     continue
 
@@ -224,23 +223,31 @@ class Environment:
             for endNode in range(self.numberNodes):
                 # Get Edge
                 edge = self.graph.findEdge(startNode, endNode)
-                if (edge is not None and edge.value.isAvailable()):
+                if edge is not None and edge.value.isAvailable():
                     x1, y1 = self.positionsUI[startNode]
                     x2, y2 = self.positionsUI[endNode]
-                    pygame.draw.line(self.screen, (150, 150, 150), (x1, y1), (x2, y2), 16)
+                    pygame.draw.line(
+                        self.screen, (150, 150, 150), (x1, y1), (x2, y2), 16
+                    )
 
                     # Display the Distance between them
                     x = (x2 + x1) // 2
                     y = (y2 + y1) // 2
                     distanceString = str(edge.value.getDistance())
-                    distanceLabel = self.font.render(distanceString, True, (0, 0, 255))  # black text
+                    distanceLabel = self.font.render(
+                        distanceString, True, (0, 0, 255)
+                    )  # black text
                     t = distanceLabel.get_width() // 2
                     s = distanceLabel.get_height() // 2
-                    self.screen.blit(distanceLabel, (x - t, y + 8 - s))  # Adjust positioning as needed
+                    self.screen.blit(
+                        distanceLabel, (x - t, y + 8 - s)
+                    )  # Adjust positioning as needed
 
         # Draw nodes
         for node, (x, y) in self.positionsUI.items():
-            pygame.draw.circle(self.screen, (255, 255, 255), (int(x), int(y)), 30)  # light blue
+            pygame.draw.circle(
+                self.screen, (255, 255, 255), (int(x), int(y)), 30
+            )  # light blue
             # Render node number and draw it near the node
             label = self.font.render(str(node), True, (0, 0, 0))  # black text
             self.screen.blit(label, (x - 5, y + 20))  # Adjust positioning as needed
@@ -248,12 +255,16 @@ class Environment:
         # Draw trucks in red
         for truck_id, node_id in self.truckPositions.items():
             x, y = self.positionsUI[node_id]
-            pygame.draw.circle(self.screen, (255, 0, 0), (int(x), int(y)), 15)  # red for trucks
+            pygame.draw.circle(
+                self.screen, (255, 0, 0), (int(x), int(y)), 15
+            )  # red for trucks
 
         # Draw bins in green
         for bin_id, node_id in self.binPositions.items():
             x, y = self.positionsUI[node_id]
-            pygame.draw.circle(self.screen, (0, 255, 0), (int(x), int(y)), 10)  # green for bins
+            pygame.draw.circle(
+                self.screen, (0, 255, 0), (int(x), int(y)), 10
+            )  # green for bins
 
     def updateSimulationUI(self):
         # Update the graph
@@ -291,7 +302,7 @@ class Environment:
         self.truckPositions.update({agentId: newNodePos})
 
         # Updates the Truck Positions in the UI
-        if (self.useUI):
+        if self.useUI:
             self.updateSimulationUI()
 
     def getTrucks(self, nodeId: int) -> list:
