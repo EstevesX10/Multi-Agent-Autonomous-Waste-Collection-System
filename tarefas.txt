@@ -1,13 +1,13 @@
 coletar estatisticas para performance - Easy
 - ir adicionando à medida q se vai fazendo
 
-desastres aka deus - HARD
+desastres aka deus - HARD - feito
 - alterar hora influencia:
     bins - feito
-    transito
+    transito - feito
 - bloquear/desbloquear estradas - falta trucks terem isso em conta (e tb o A*?) - feito
 
-acabar truckmovement - Medium
+acabar truckmovement - Medium - feito
 - depositar na central e dar refuel - feito
 - arranjar o pickup
     coletar numero fixo - feito
@@ -15,16 +15,16 @@ acabar truckmovement - Medium
     voltar para a central se algo der errado? - ele vira stuck - feito
 - se passar na central a qualquer momento entao descarrega? - feito
 
-cost function para trucks - Medium
+cost function para trucks - Medium - feito
 - tempo para reabastecer (se necessario) - feito
 - tempo para esvaziar (se necessario) - feito
 - distancia - feito
 - ter em conta se fica pelo caminho - feito
 
-heuristic para A* - Easy
+heuristic para A* - Easy - feito
 - ja n me lembro (perguntar ao esteves) - feito?
 
-heuristic para escolher bin - Easy
+heuristic para escolher bin - Easy - feito
 - bins precisam da previsao do seu lixo - feito
 - escolher entre as mais cheias mas tentar evitar colisoes de todos managers escolher o msm - feito
 
@@ -41,7 +41,7 @@ oq fazer quando todas as bins estao vazias - por enquanto só n manda ir lá peg
 maybe truck managers should be able to request new trucks when bins are too full - easy
 maybe truck managers should be able to sudoku when bins are too empty - medium
 maybe deposit/refuel/pickup should take some time - easy
-numero maximo de tarefas - easy
+numero maximo de tarefas - easy - feito
 
 BUGS:
 - as vezes os trucks tentam ir para onde estao. ex: ir de 2 para 2. - feito

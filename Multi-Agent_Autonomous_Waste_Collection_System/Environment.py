@@ -19,6 +19,16 @@ import random
 # from BinAgent import (BinAgent)
 # from TruckAgent import (TruckAgent)
 
+TRAFFIC_BY_TIME = [
+    # time, from, to
+    (0, 1, 3),
+    (6, 9, 12),
+    (10, 4, 5),
+    (15, 4, 7),
+    (19, 7, 10),
+    (22, 1, 3),
+]
+
 
 @dataclass
 class Road:
@@ -45,8 +55,16 @@ class Road:
     def freeRoad(self):
         self._availability = 1
 
-    def getTravelTime(self):
-        return self.getDistance()  # TODO: something better
+    def getTravelTime(self, time: int):
+        return self.getDistance() + self.trafficByTime(time)
+
+    def trafficByTime(self, time) -> int:
+        for x, start, end in reversed(TRAFFIC_BY_TIME):
+            if x <= time:
+                return random.randint(start, end)
+
+        self.agent.logger.warning(f"{time} is not a valid time")
+        return 0
 
 
 class Environment:

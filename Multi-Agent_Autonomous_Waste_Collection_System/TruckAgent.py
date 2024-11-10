@@ -12,6 +12,7 @@ from Environment import Environment
 from BinAgent import BinAgent
 from SuperAgent import SuperAgent
 from stats import Stats
+from config import Config
 
 UNREACHABLE_COST = 99_999
 
@@ -73,7 +74,7 @@ class TruckMovement(CyclicBehaviour):
                 return
 
             # Get the path duration
-            duration = road.getTravelTime()
+            duration = road.getTravelTime(self.agent.env.time)
             self.agent.logger.debug(f"is moving to {newNodePos} in {duration} s")
 
             # Wait while the truck is moving
@@ -242,7 +243,6 @@ class AssigneeBehaviour(CyclicBehaviour):
         target = self.agent.env.getBinPosition(targetId)
 
         # If target is mid-way
-        # TODO: just remember to uncomment this
         if (
             self.agent.predicted_trash + amount <= self.agent.getMaxTrashCapacity()
             and target in self.agent.tasks
@@ -351,6 +351,10 @@ class AssigneeBehaviour(CyclicBehaviour):
             and target in self.agent.tasks
         ):
             return 0
+
+        if len(self.agent.tasks) >= Config.maxTasks:
+            # Truck has too many tasks
+            return UNREACHABLE_COST
 
         # Path to bin
         path = env.findPath(self.agent.predicted_pos, target)
