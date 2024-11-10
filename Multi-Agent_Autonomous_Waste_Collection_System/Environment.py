@@ -87,8 +87,12 @@ class Environment:
         if self.useUI:
             # Initialize Pygame
             self.screen = pygame.display.set_mode((800, 800))
-            pygame.display.set_caption("Agent Environment Visualization")
+            pygame.display.set_caption("Waste Collection System")
             self.clock = pygame.time.Clock()
+
+            # Load and set the window icon
+            self.icon = pygame.image.load("./Assets/Truck.png")  # Replace with the actual path to your icon file
+            pygame.display.set_icon(self.icon)
 
             # Initialize font for node labels
             self.font = pygame.font.Font(None, 24)
@@ -231,6 +235,14 @@ class Environment:
 
     # Graph UI related methods
 
+    def draw_drop_icon(self, x, y):
+        """Draws a simple drop icon at the specified (x, y) position."""
+        # Draw the circular part of the drop
+        pygame.draw.circle(self.screen, (0, 0, 255), (x, y), 6)  # Blue color and size of 6
+
+        # Draw the triangular tip of the drop
+        pygame.draw.polygon(self.screen, (0, 0, 255), [(x, y - 6), (x - 4, y + 4), (x + 4, y + 4)])
+
     # FIX LATER
     def drawGraph(self):
         """Draws the entire environment: nodes, edges, trucks, and bins."""
@@ -245,7 +257,7 @@ class Environment:
                     x1, y1 = self.positionsUI[startNode]
                     x2, y2 = self.positionsUI[endNode]
                     pygame.draw.line(
-                        self.screen, (150, 150, 150), (x1, y1), (x2, y2), 16
+                        self.screen, (150, 150, 150), (x1, y1), (x2, y2), 8
                     )
 
                     # Display the Distance between them
@@ -253,22 +265,52 @@ class Environment:
                     y = (y2 + y1) // 2
                     distanceString = str(edge.value.getDistance())
                     distanceLabel = self.font.render(
-                        distanceString, True, (0, 0, 255)
-                    )  # black text
-                    t = distanceLabel.get_width() // 2
-                    s = distanceLabel.get_height() // 2
-                    self.screen.blit(
-                        distanceLabel, (x - t, y + 8 - s)
-                    )  # Adjust positioning as needed
+                        distanceString, True, (255, 255, 255)
+                    )
+                    
+                    # Get size of the text to create the background box
+                    textWidth, textHeight = distanceLabel.get_size()
+                    
+                    # Define padding
+                    paddingY = 4
+                    paddingX = 16
+
+                    # Create a background box for the 
+                    backgroundBox = pygame.Rect(
+                        x - textWidth // 2 - paddingX,
+                        y - textHeight // 2 - paddingY,
+                        textWidth + 2 * paddingX,
+                        textHeight + 2 * paddingY
+                    )
+
+                    # Draw background box and then draw text on top
+                    pygame.draw.rect(self.screen, (65,105,225), backgroundBox, border_radius=8)
+                    self.screen.blit(distanceLabel, (x - textWidth // 2, y - textHeight // 2))
 
         # Draw nodes
         for node, (x, y) in self.positionsUI.items():
-            pygame.draw.circle(
-                self.screen, (255, 255, 255), (int(x), int(y)), 30
-            )  # light blue
-            # Render node number and draw it near the node
-            label = self.font.render(str(node), True, (0, 0, 0))  # black text
-            self.screen.blit(label, (x - 5, y + 20))  # Adjust positioning as needed
+            # pygame.draw.circle(
+            #     self.screen, (255, 255, 255), (int(x), int(y)), 30
+            # )  # light blue
+            # # Render node number and draw it near the node
+            # label = self.font.render(str(node), True, (0, 0, 0))  # black text
+            # self.screen.blit(label, (x - 5, y + 20))  # Adjust positioning as needed
+            
+            node_width = 120
+            node_height = 120
+
+            # Define the container box for each node
+            box_rect = pygame.Rect(x - node_width // 2, y - node_height // 2, node_width, node_height)
+            
+            # Draw the container box with a border
+            pygame.draw.rect(self.screen, (200, 200, 200), box_rect, border_radius=8)  # Light gray background
+            pygame.draw.rect(self.screen, (0, 0, 0), box_rect, 2, border_radius=8)  # Black border
+
+            # Display the Node ID at the top of the box
+            node_text = f"Node ID: {node}"
+            node_label = self.font.render(node_text, True, (0, 0, 0))  # Black text
+            text_rect = node_label.get_rect(center=(box_rect.centerx, box_rect.y + 25)) 
+            self.screen.blit(node_label, text_rect)  # Position near the top
 
         # Draw trucks in red
         for truck_id, node_id in self.truckPositions.items():
