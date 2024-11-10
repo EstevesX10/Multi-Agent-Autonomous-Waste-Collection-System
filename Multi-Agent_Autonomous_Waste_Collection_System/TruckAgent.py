@@ -243,19 +243,19 @@ class AssigneeBehaviour(CyclicBehaviour):
 
         # If target is mid-way
         # TODO: just remember to uncomment this
-        # if (
-        # self.agent.predicted_trash + amount <= self.agent.getMaxTrashCapacity()
-        # and target in self.agent.tasks
-        # ):
-        # index = self.agent.tasks.index(target)
-        # self.agent.tasks.insert(index + 1, f"{Tasks.PICKUP} {targetId} {amount}")
-        # self.agent.predicted_trash += amount
-        # assert (
-        # self.agent.predicted_trash <= self.agent.getMaxTrashCapacity()
-        # ), "predicted trash is over capacity"
-        # if decreaseBinPred:
-        # self.agent.env.agents[targetId].decreasePredictedTrashLevel(amount)
-        # return True
+        if (
+            self.agent.predicted_trash + amount <= self.agent.getMaxTrashCapacity()
+            and target in self.agent.tasks
+        ):
+            index = self.agent.tasks.index(target)
+            self.agent.tasks.insert(index + 1, f"{Tasks.PICKUP} {targetId} {amount}")
+            self.agent.predicted_trash += amount
+            assert (
+                self.agent.predicted_trash <= self.agent.getMaxTrashCapacity()
+            ), "predicted trash is over capacity"
+            if decreaseBinPred:
+                self.agent.env.agents[targetId].decreasePredictedTrashLevel(amount)
+                return True
 
         # Calculate path to bin
         path = env.findPath(self.agent.predicted_pos, target)
@@ -272,21 +272,18 @@ class AssigneeBehaviour(CyclicBehaviour):
         ]  # TODO: are there going to be more?
 
         if closest_central in path_bin:
-            # TODO: i think this case is the one that sometimes double roads (happens a lot at 2)
             # Central is in path of the bin
             # we will always refuel and deposit
-            self.agent.tasks.extend(path_bin[1 : path_bin.index(closest_central) + 1])
-            self.agent.predicted_pos = closest_central
             self.agent.predicted_fuel = self.agent.getMaxFuelLevel()
             self.agent.predicted_trash = 0
 
             # Recalculate path to bin
-            path = env.findPath(self.agent.predicted_pos, target)
+            path = env.findPath(closest_central, target)
             if path is None:
                 # This *should* never happen
                 self.agent.logger.critical("this should be impossible...")
                 return False
-            path_bin, _, required_fuel_bin = path
+            _, _, required_fuel_bin = path
         else:
             # Make sure we have enough fuel to pickup and return to central
             path = env.findPath(target, closest_central)
@@ -296,7 +293,7 @@ class AssigneeBehaviour(CyclicBehaviour):
                     f"has no path from {target=} to the central {closest_central}"
                 )
                 return False
-            path_refuel, _, required_fuel_refuel = path
+            _, _, required_fuel_refuel = path
 
             # If there isnt enough fuel or capacity then return to central first
             required_fuel = required_fuel_bin + required_fuel_refuel
@@ -305,9 +302,18 @@ class AssigneeBehaviour(CyclicBehaviour):
                 or self.agent.predicted_trash + amount
                 > self.agent.getMaxTrashCapacity()
             ):
+                path = env.findPath(self.agent.predicted_pos, closest_central)
+                if path is None:
+                    # We cant be sure the truck has enough fuel to return to central
+                    self.agent.logger.warning(
+                        f"has no path from predicted {self.agent.predicted_pos} to the central {closest_central}"
+                    )
+                    return False
+                path_refuel, _, _ = path
+
                 # Truck will refuel and deposit automatic when reaches central
                 self.agent.tasks.extend(path_refuel[1:])
-                self.agent.predicted_pos = path_refuel[-1]
+                self.agent.predicted_pos = closest_central
                 self.agent.predicted_fuel = self.agent.getMaxFuelLevel()
                 self.agent.predicted_trash = 0
 
