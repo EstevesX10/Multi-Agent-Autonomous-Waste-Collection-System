@@ -38,6 +38,16 @@ trucks precisam previsao do combustivel e capacidade - Easy - feito
 corrijir bug do manager confirm pq é cancelado por motivo nenhum - Unknown - feito?
 contractNet by the book
 oq fazer quando todas as bins estao vazias - por enquanto só n manda ir lá pegar mas podemos fazer melhor
+maybe truck managers should be able to request new trucks when bins are too full - easy
+maybe truck managers should be able to sudoku when bins are too empty - medium
+maybe deposit/refuel/pickup should take some time - easy
+numero maximo de tarefas - easy
+
+BUGS:
+- as vezes os trucks tentam ir para onde estao. ex: ir de 2 para 2.
+    solução: detetar estes casos é facil e podemos simplesmente n fazer nada mas...
+        isto n devia ser possivel acontecer e é sinal q existe um problema algures
+- trucks tentam pegar lixo para alem da capacidade
 
 
 garantir q existe combustivel suficiente para ir da central ao canto mais longe e voltar

@@ -13,7 +13,8 @@ from stats import Stats
 
 TRASH_BY_TIME = [
     # time, from, to
-    (0, 1, 3),
+    # (0, 1, 3), # TODO: only for testing
+    (0, 25, 30),
     (6, 9, 12),
     (10, 4, 5),
     (15, 4, 7),

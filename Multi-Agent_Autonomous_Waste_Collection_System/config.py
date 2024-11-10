@@ -1,7 +1,8 @@
 class Config:
-    truckNumber: int = 2  # TODO:
+    truckNumber: int = 8
     truckCapacity: int = 0  # TODO:
 
+    binCount: int = 20
     trashGenCooldown: int = 30  # TODO:
     binCapacity: int = 0  # TODO:
 

@@ -66,14 +66,10 @@ class DestroyTruckBehaviour(PeriodicBehaviour):
         victim.becomeStuck(canRecover=False)
         Stats.disasters += 1
 
+        # TODO: maybe truck managers should be able to request new trucks when bins are too full
         await asyncio.sleep(Config.secondsForNewTruck)
 
-        # TODO: get a decent jid
-        truck = TruckAgent(
-            f"truck{random.randint(0,999999)}@localhost", "password", self.agent.env
-        )
-        self.agent.logger.info("has brought a new truck to this world")
-        await truck.start(auto_register=True)
+        await TruckAgent.createTruck(self.agent.env)
 
 
 class God(SuperAgent):

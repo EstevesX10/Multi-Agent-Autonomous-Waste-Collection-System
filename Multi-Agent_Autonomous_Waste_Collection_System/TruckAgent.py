@@ -13,6 +13,8 @@ from BinAgent import BinAgent
 from SuperAgent import SuperAgent
 from stats import Stats
 
+UNREACHABLE_COST = 99_999
+
 
 class Tasks:
     PICKUP = "pickup"
@@ -112,8 +114,9 @@ class TruckMovement(CyclicBehaviour):
             env.performTrashExtraction(currentNode, trashAmount, truckId, binId)
 
             binAgent = env.agents[binId]
+            predicted = binAgent.getPredictedTrashLevel()
             self.agent.logger.info(
-                f"Collected {trashAmount} units of trash. Total now: {self.agent.getCurrentTrashLevel()}/{self.agent.getMaxTrashCapacity()} units. Remaining in bin: {binAgent.getCurrentTrashLevel()}/{binAgent.getTrashMaxCapacity()}"
+                f"Collected {trashAmount} units of trash from {binId}. Total now: {self.agent.getCurrentTrashLevel()}/{self.agent.getMaxTrashCapacity()} units. Remaining in bin: {binAgent.getCurrentTrashLevel()}/{binAgent.getTrashMaxCapacity()}, predicted: {predicted}"
             )
         else:
             self.agent.logger.warning(f"has unknown task: {cur_task}")
@@ -154,6 +157,7 @@ class ManagerBehaviour(CyclicBehaviour):
         bin, amount = self.choose_bin()
         if amount == 0:
             # Theres no trash to collect
+            # TODO: maybe commit sudoku
             await asyncio.sleep(1)
             return
 
@@ -184,6 +188,17 @@ class ManagerBehaviour(CyclicBehaviour):
             return
 
         choosen = min(costs.keys(), key=costs.__getitem__)
+        if int(costs[choosen]) == UNREACHABLE_COST:
+            # No truck can reach the bin
+            self.agent.logger.debug(f"no truck could reach {bin}. Retrying...")
+            return
+
+        # Trash prediction may have changed since start
+        # never ask to collect more than previously agreed
+        amount = min(int(amount), self.agent.env.agents[bin].getPredictedTrashLevel())
+        if amount == 0:
+            # Another manager was faster and already has enough trucks inbound
+            return
 
         # Assign task to choosen
         msg = Message(
@@ -191,7 +206,7 @@ class ManagerBehaviour(CyclicBehaviour):
             metadata={"performative": "request"},
             body=f"{bin} {amount} {times[choosen]} {self._shouldDecreaseBin}",
         )
-        self.agent.logger.debug(f"choose {msg.to} for {bin}")
+        self.agent.logger.debug(f"choose {msg.to} for {bin}, cost: {costs[choosen]}")
         await self.send(msg)
 
         # Get confirmation
@@ -217,15 +232,30 @@ class AssigneeBehaviour(CyclicBehaviour):
     def add_task(self, targetId: str, amount: int, decreaseBinPred: bool) -> bool:
         env = self.agent.env
 
+        # Trash prediction may have changed since manager approval
+        # never collect more than previously agreed
+        amount = min(amount, self.agent.env.agents[targetId].getPredictedTrashLevel())
+        if amount == 0:
+            # There is no trash to collect
+            return False
+
         target = self.agent.env.getBinPosition(targetId)
 
-        # If target in mid-way then cost is zero
-        if (
-            self.agent.predicted_trash + amount <= self.agent.getMaxTrashCapacity()
-            and target in self.agent.tasks
-        ):
-            index = self.agent.tasks.index(target)
-            self.agent.tasks.insert(index + 1, f"{Tasks.PICKUP} {targetId} {amount}")
+        # If target is mid-way
+        # TODO: just remember to uncomment this
+        # if (
+        # self.agent.predicted_trash + amount <= self.agent.getMaxTrashCapacity()
+        # and target in self.agent.tasks
+        # ):
+        # index = self.agent.tasks.index(target)
+        # self.agent.tasks.insert(index + 1, f"{Tasks.PICKUP} {targetId} {amount}")
+        # self.agent.predicted_trash += amount
+        # assert (
+        # self.agent.predicted_trash <= self.agent.getMaxTrashCapacity()
+        # ), "predicted trash is over capacity"
+        # if decreaseBinPred:
+        # self.agent.env.agents[targetId].decreasePredictedTrashLevel(amount)
+        # return True
 
         # Calculate path to bin
         path = env.findPath(self.agent.predicted_pos, target)
@@ -242,6 +272,7 @@ class AssigneeBehaviour(CyclicBehaviour):
         ]  # TODO: are there going to be more?
 
         if closest_central in path_bin:
+            # TODO: i think this case is the one that sometimes double roads (happens a lot at 2)
             # Central is in path of the bin
             # we will always refuel and deposit
             self.agent.tasks.extend(path_bin[1 : path_bin.index(closest_central) + 1])
@@ -252,15 +283,15 @@ class AssigneeBehaviour(CyclicBehaviour):
             # Recalculate path to bin
             path = env.findPath(self.agent.predicted_pos, target)
             if path is None:
-                self.agent.logger.warning(
-                    f"has to refuel/deposit at central {self.agent.predicted_pos} but then cant reach {target}"
-                )
+                # This *should* never happen
+                self.agent.logger.critical("this should be impossible...")
                 return False
             path_bin, _, required_fuel_bin = path
         else:
-            # Make sure we have enough to pickup and return to central
+            # Make sure we have enough fuel to pickup and return to central
             path = env.findPath(target, closest_central)
             if path is None:
+                # We cant be sure the truck has enough fuel to return to central
                 self.agent.logger.warning(
                     f"has no path from {target=} to the central {closest_central}"
                 )
@@ -295,6 +326,10 @@ class AssigneeBehaviour(CyclicBehaviour):
         self.agent.predicted_pos = path_bin[-1]
         self.agent.predicted_fuel -= required_fuel_bin
         self.agent.predicted_trash += amount
+        assert self.agent.predicted_fuel >= 0, "predicted negative fuel"
+        assert (
+            self.agent.predicted_trash <= self.agent.getMaxTrashCapacity()
+        ), "predicted trash is over capacity"
         if decreaseBinPred:
             self.agent.env.agents[targetId].decreasePredictedTrashLevel(amount)
         return True
@@ -304,7 +339,7 @@ class AssigneeBehaviour(CyclicBehaviour):
 
         target = env.getBinPosition(bin)
 
-        # If target in mid-way then cost is zero
+        # If target in mid-way and there is enough capacity then cost is zero
         if (
             self.agent.predicted_trash + amount <= self.agent.getMaxTrashCapacity()
             and target in self.agent.tasks
@@ -314,7 +349,7 @@ class AssigneeBehaviour(CyclicBehaviour):
         # Path to bin
         path = env.findPath(self.agent.predicted_pos, target)
         if path is None:
-            return 99999
+            return UNREACHABLE_COST
         _, dist_bin, required_fuel_bin = path
 
         # Calculate path from bin to central
@@ -323,7 +358,7 @@ class AssigneeBehaviour(CyclicBehaviour):
         ]  # TODO: are there going to be more?
         path = env.findPath(target, closest_central)
         if path is None:
-            return 99999
+            return UNREACHABLE_COST
         path_refuel, dist_refuel, required_fuel_refuel = path
 
         # If there isnt enough fuel or capacity then return to central first
@@ -336,7 +371,7 @@ class AssigneeBehaviour(CyclicBehaviour):
             # Recalculate path to bin
             path = env.findPath(path_refuel[-1], target)
             if path is None:
-                return 99999
+                return UNREACHABLE_COST
             _, dist_bin, _ = path
 
             refuel_cost = dist_refuel
@@ -438,6 +473,9 @@ class StuckBehaviour(ManagerBehaviour):
 
 
 class TruckAgent(SuperAgent):
+    # this is static
+    truckCount: int = 0
+
     def __init__(
         self,
         jid: str,
@@ -465,7 +503,7 @@ class TruckAgent(SuperAgent):
         )  # Constant that determines how fast the truck loses its fuel
 
         self.tasks = []
-        self.predicted_pos = self._startPos  # TODO: isto devia ser a posição inicial
+        self.predicted_pos = self._startPos
         self.predicted_fuel = self._currentFuelLevel
         self.predicted_trash = self._currentTrashLevel
 
@@ -481,6 +519,14 @@ class TruckAgent(SuperAgent):
 
         # Add assignee behaviour
         self.becomeAssignee()
+
+    @staticmethod
+    async def createTruck(env: Environment, pos: int = -1):
+        truck = TruckAgent(
+            f"truck{TruckAgent.truckCount}@localhost", "password", env, startPos=pos
+        )
+        TruckAgent.truckCount += 1
+        await truck.start(auto_register=True)
 
     # Getters
 
@@ -536,7 +582,7 @@ class TruckAgent(SuperAgent):
             self.logger.critical(
                 f"tryed to collect {amount}. CurrentLevel: {self.getCurrentTrashLevel()} Capacity: {self.getMaxTrashCapacity()}. Returning to base"
             )
-            # TODO: cancel everything and return to base
+            self.becomeStuck()
         else:
             self._currentTrashLevel = newTrashLevel
 
