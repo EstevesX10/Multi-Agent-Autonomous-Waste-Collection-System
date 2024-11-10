@@ -1,3 +1,4 @@
+from typing import Union
 from datetime import datetime
 from config import Config
 from stats import Stats
@@ -10,7 +11,7 @@ from spade.behaviour import CyclicBehaviour, OneShotBehaviour, PeriodicBehaviour
 
 
 class GodlyBehaviour(PeriodicBehaviour):
-    def __init__(self, period: float, start_at: datetime | None = None):
+    def __init__(self, period: float, start_at: Union[datetime, None] = None):
         super().__init__(period, start_at)
 
     def blockRandomRoad(self):
