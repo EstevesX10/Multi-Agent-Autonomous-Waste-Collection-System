@@ -53,7 +53,7 @@ class Road:
 class Environment:
     def __init__(self, useUI=False) -> None:
         self.roads = []
-        self.numberNodes, self.graph, self.positions = self.__readGraph(
+        self.numberNodes, self.graph, self.positionsUI = self.__readGraph(
             "./EnvironmentLayouts/Layout1.txt"
         )
         self.distanceMatrix, self.parentMatrix = self.__calculateMatrices()
@@ -65,40 +65,19 @@ class Environment:
 
         self.time = 0
 
-        if useUI:
+        self.useUI = useUI
+
+        if self.useUI:
             # Initialize Pygame
             self.screen = pygame.display.set_mode((800, 800))
             pygame.display.set_caption("Agent Environment Visualization")
             self.clock = pygame.time.Clock()
 
+            # Initialize font for node labels
+            self.font = pygame.font.Font(None, 24)
+
             # Setup graph and scale node positions
-            self.draw_graph()
-
-    def draw_graph(self):
-        """Draws the entire environment: nodes, edges, trucks, and bins."""
-        self.screen.fill((255, 255, 255))  # White background
-
-        # Draw edges
-        for startNode in range(self.numberNodes):
-            for endNode in range(self.numberNodes):
-                if (self.graph.findEdge(startNode, endNode) is not None):
-                    x1, y1 = self.positions[startNode]
-                    x2, y2 = self.positions[endNode]
-                    pygame.draw.line(self.screen, (150, 150, 150), (x1, y1), (x2, y2), 2)
-
-        # Draw nodes
-        for node, (x, y) in self.positions.items():
-            pygame.draw.circle(self.screen, (173, 216, 230), (int(x), int(y)), 10)  # light blue
-
-        # Draw trucks in red
-        for truck_id, node_id in self.truckPositions.items():
-            x, y = self.positions[node_id]
-            pygame.draw.circle(self.screen, (255, 0, 0), (int(x), int(y)), 15)  # red for trucks
-
-        # Draw bins in green
-        for bin_id, node_id in self.binPositions.items():
-            x, y = self.positions[node_id]
-            pygame.draw.circle(self.screen, (0, 255, 0), (int(x), int(y)), 10)  # green for bins
+            self.updateSimulationUI()
 
     # Graph Related Methods
 
@@ -233,6 +212,56 @@ class Environment:
         del self.agents[truckId]
         del self.truckPositions[truckId]
 
+    # Graph UI related methods
+
+    # FIX LATER
+    def drawGraph(self):
+        """Draws the entire environment: nodes, edges, trucks, and bins."""
+        self.screen.fill((173, 216, 230))
+
+        # Draw edges
+        for startNode in range(self.numberNodes):
+            for endNode in range(self.numberNodes):
+                # Get Edge
+                edge = self.graph.findEdge(startNode, endNode)
+                if (edge is not None and edge.value.isAvailable()):
+                    x1, y1 = self.positionsUI[startNode]
+                    x2, y2 = self.positionsUI[endNode]
+                    pygame.draw.line(self.screen, (150, 150, 150), (x1, y1), (x2, y2), 16)
+
+                    # Display the Distance between them
+                    x = (x2 + x1) // 2
+                    y = (y2 + y1) // 2
+                    distanceString = str(edge.value.getDistance())
+                    distanceLabel = self.font.render(distanceString, True, (0, 0, 255))  # black text
+                    t = distanceLabel.get_width() // 2
+                    s = distanceLabel.get_height() // 2
+                    self.screen.blit(distanceLabel, (x - t, y + 8 - s))  # Adjust positioning as needed
+
+        # Draw nodes
+        for node, (x, y) in self.positionsUI.items():
+            pygame.draw.circle(self.screen, (255, 255, 255), (int(x), int(y)), 30)  # light blue
+            # Render node number and draw it near the node
+            label = self.font.render(str(node), True, (0, 0, 0))  # black text
+            self.screen.blit(label, (x - 5, y + 20))  # Adjust positioning as needed
+
+        # Draw trucks in red
+        for truck_id, node_id in self.truckPositions.items():
+            x, y = self.positionsUI[node_id]
+            pygame.draw.circle(self.screen, (255, 0, 0), (int(x), int(y)), 15)  # red for trucks
+
+        # Draw bins in green
+        for bin_id, node_id in self.binPositions.items():
+            x, y = self.positionsUI[node_id]
+            pygame.draw.circle(self.screen, (0, 255, 0), (int(x), int(y)), 10)  # green for bins
+
+    def updateSimulationUI(self):
+        # Update the graph
+        self.drawGraph()
+
+        # Update the Pygame Display
+        pygame.display.flip()
+
     # Road Related Methods
 
     def getRoads(self) -> list:
@@ -260,6 +289,10 @@ class Environment:
         self.graph.removeAgentNode(oldNodePos, agentId)
         self.graph.addAgentNode(newNodePos, agentId)
         self.truckPositions.update({agentId: newNodePos})
+
+        # Updates the Truck Positions in the UI
+        if (self.useUI):
+            self.updateSimulationUI()
 
     def getTrucks(self, nodeId: int) -> list:
         # Initialze a list for the trucks that are inside a given node

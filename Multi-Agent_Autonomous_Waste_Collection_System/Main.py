@@ -28,7 +28,7 @@ async def main():
     bin2 = BinAgent("bin2@localhost", "password", env)
 
     # Print the agents per nodes of the network
-    print(env.getAgentsDistribution())
+    # print(env.getAgentsDistribution())
 
     # Wait for the Agents to Start
     await bin1.start(auto_register=True)
@@ -40,8 +40,7 @@ async def main():
 
     if useUI:
         # Draw environment
-        env.draw_graph()
-        pygame.display.flip()
+        env.updateSimulationUI()
 
     # the main function MUST NOT RETURN!
     while True:
