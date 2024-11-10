@@ -504,6 +504,8 @@ class TruckAgent(SuperAgent):
         password: str,
         environment: Environment,
         startPos: int = -1,
+        maxCapacity: int = Config.truckCapacity,
+        fuelType: int = -1,  # -1 - Random || 1 - Eletric || 2 - Gas / Gasoline
         verify_security: bool = False,
     ) -> None:
         super().__init__(jid, password, verify_security)
@@ -515,11 +517,11 @@ class TruckAgent(SuperAgent):
         )
 
         self._currentTrashLevel = 10
-        self._maxTrashCapacity = 50
+        self._maxTrashCapacity = maxCapacity
 
-        self._fueltype = 1  # 1 - Eletric || 2 - Gas / Gasoline
-        self._currentFuelLevel = 100
-        self._maxFuelCapacity = 100
+        self._fueltype = fuelType if fuelType != -1 else random.randint(1, 2)
+        self._maxFuelCapacity = Config.truckFuelCapacity
+        self._currentFuelLevel = self._maxFuelCapacity
         self._fuelDepletionRate = 2 * (
             1 / self._fueltype
         )  # Constant that determines how fast the truck loses its fuel
@@ -605,8 +607,10 @@ class TruckAgent(SuperAgent):
                 f"tryed to collect {amount}. CurrentLevel: {self.getCurrentTrashLevel()} Capacity: {self.getMaxTrashCapacity()}. Returning to base"
             )
             self.becomeStuck()
-        else:
-            self._currentTrashLevel = newTrashLevel
+            return self.getMaxTrashCapacity()
+
+        Stats.trash_collected += amount
+        self._currentTrashLevel = newTrashLevel
 
         return self._currentTrashLevel
 
@@ -628,38 +632,17 @@ class TruckAgent(SuperAgent):
         # Refuels the truck tank
         self._currentFuelLevel = self.getMaxFuelLevel()
 
-    # ---------------------------------------------------------------------------------------
-
-    # ADD A CHECK FOR THE TRASH BIN AND THE TRUCK TO BE IN THE SAME POSITION INSIDE THE ENV
-    def _validTrashExtraction(self, trashBin: BinAgent) -> bool:
-        """
-        # Description
-            -> Check if a certain trash extraction from a trashBin to the Truck is valid
-        """
-        return (
-            self.getCurrentAvailableTrashCapacity() >= trashBin.getCurrentTrashLevel()
-        )
-
-    # MAYBE CHANGE IF WE INCLUDE A ENVIRONMENT INSTANCE INSIDE THIS CLASS
-    def extractBinTrash(self, trashBin: BinAgent):
-        """
-        # Description
-            -> Performs Trash Extraction
-        """
-        if self._validTrashExtraction(trashBin):
-            self._currentTrashLevel += trashBin.getCurrentTrashLevel()
-            trashBin.cleanBin()
-        return trashBin
-
     def consumeFuel(self, amount: int) -> int:
+        amount = int(amount * self._fuelDepletionRate)
+
         self._currentFuelLevel -= amount
         Stats.fuel_consumed += amount
 
         if self._currentFuelLevel <= 0:
             # Truck is dead
             Stats.trucks_without_fuel += 1
-            # TODO: redistribute tasks
-            self.stop()
+            self.becomeStuck(canRecover=False)
+            return 0
 
         return self._currentFuelLevel
 

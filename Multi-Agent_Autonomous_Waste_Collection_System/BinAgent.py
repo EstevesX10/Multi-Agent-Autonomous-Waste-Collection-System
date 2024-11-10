@@ -6,10 +6,12 @@ from spade.message import Message
 import asyncio
 import spade
 import random
+from datetime import datetime
 
 from Environment import Environment
 from SuperAgent import SuperAgent
 from stats import Stats
+from config import Config
 
 TRASH_BY_TIME = [
     # time, from, to
@@ -64,6 +66,7 @@ class BinAgent(SuperAgent):
         password: str,
         environment: Environment,
         startTrash: int = 0,
+        capacity: int = Config.binCapacity,
         generatesTrash: bool = True,
         startPos: int = -1,
         verify_security: bool = False,
@@ -79,6 +82,7 @@ class BinAgent(SuperAgent):
         self._maxTrashCapacity = 30
         self._predictedTrash = self._currentTrashLevel
         self._generatesTrash = generatesTrash
+        self._lastCollectTime = datetime.now()
 
     async def setup(self):
         print(f"[SETUP] {self.jid}\n")
@@ -88,7 +92,7 @@ class BinAgent(SuperAgent):
 
         if self._generatesTrash:
             # Adding a random trash generation (Every 30s)
-            self.add_behaviour(GenerateTrashBehaviour(period=30))
+            self.add_behaviour(GenerateTrashBehaviour(period=Config.trashGenCooldown))
         else:
             self.add_behaviour(DestoyWhenEmptyBehaviour(period=30))
 
@@ -127,6 +131,12 @@ class BinAgent(SuperAgent):
             -> Removes a certain trash amount from the Bin
         """
         self._currentTrashLevel -= trashAmount
+
+        now = datetime.now()
+        Stats.bin_collection_times[str(self.jid)].append(
+            (now - self._lastCollectTime).total_seconds()
+        )
+        self._lastCollectTime = now
 
     def updateTrashLevel(self, newTrashLevel: int) -> None:
         """
