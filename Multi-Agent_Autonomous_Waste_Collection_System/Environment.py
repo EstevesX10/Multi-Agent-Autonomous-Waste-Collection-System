@@ -102,6 +102,8 @@ class Environment:
             self.trashBinSprite = pygame.transform.scale(self.trashBinSprite, (50, 50))
             self.truckSprite = pygame.image.load("./Assets/TrashTruck.png")
             self.truckSprite = pygame.transform.scale(self.truckSprite, (50, 50))
+            self.trashFacilitySprite = pygame.image.load("./Assets/TrashFacility.png")
+            self.trashFacilitySprite = pygame.transform.scale(self.trashFacilitySprite, (80, 80))
 
             # Setup graph and scale node positions
             self.updateSimulationUI()
@@ -295,13 +297,7 @@ class Environment:
 
         # Draw nodes
         for node, (x, y) in self.positionsUI.items():
-            # pygame.draw.circle(
-            #     self.screen, (255, 255, 255), (int(x), int(y)), 30
-            # )  # light blue
-            # # Render node number and draw it near the node
-            # label = self.font.render(str(node), True, (0, 0, 0))  # black text
-            # self.screen.blit(label, (x - 5, y + 20))  # Adjust positioning as needed
-            
+            # Define the node's box parameters
             node_width = 120
             node_height = 120
 
@@ -344,29 +340,18 @@ class Environment:
             if node in self.truckPositions.values():
                 truck_sprite_pos = (
                     box_rect.centerx - self.truckSprite.get_width() // 2,
-                    box_rect.y - self.truckSprite.get_height() - 5  # Positioning above with 5 px padding
+                    box_rect.y + self.truckSprite.get_height() + node_height // 2 + 10
                 )
                 self.screen.blit(self.truckSprite, truck_sprite_pos)
 
-        # Draw trucks in red
-        # for truck_id, node_id in self.truckPositions.items():
-        #     x, y = self.positionsUI[node_id]
-        #     pygame.draw.circle(
-        #         self.screen, (255, 0, 0), (int(x), int(y)), 15
-        #     )  # red for trucks
+            # Display the trash disposit facility
+            if node in self.trashDeposits.values():
+                trash_deposit_sprite_pos = (
+                    box_rect.centerx - self.trashFacilitySprite.get_width() // 2,
+                    box_rect.y - self.trashFacilitySprite.get_height()
+                )
+                self.screen.blit(self.trashFacilitySprite, trash_deposit_sprite_pos)
 
-        # # Draw bins in green
-        # for bin_id, node_id in self.binPositions.items():
-        #     x, y = self.positionsUI[node_id]
-            
-            # # Position Trash Bin sprite in the center of the box
-            # trash_bin_x = box_rect.centerx - self.trashBinSprite.get_width() // 2
-            # trash_bin_y = box_rect.y + 40
-            # self.screen.blit(self.trashBinSprite, (trash_bin_x, trash_bin_y))
-            
-            # pygame.draw.circle(
-            #     self.screen, (0, 255, 0), (int(x), int(y)), 10
-            # )  # green for bins
 
     def updateSimulationUI(self):
         # Update the graph
