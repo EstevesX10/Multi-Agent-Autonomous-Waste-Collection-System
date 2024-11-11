@@ -91,11 +91,15 @@ class Environment:
             self.clock = pygame.time.Clock()
 
             # Load and set the window icon
-            self.icon = pygame.image.load("./Assets/Truck.png")  # Replace with the actual path to your icon file
+            self.icon = pygame.image.load("./Assets/Truck.png")
             pygame.display.set_icon(self.icon)
 
             # Initialize font for node labels
             self.font = pygame.font.Font(None, 24)
+
+            # Load Agent Sprites
+            self.trashBinSprite = pygame.image.load("./Assets/TrashBin.png")
+            self.trashBinSprite = pygame.transform.scale(self.trashBinSprite, (50, 50))
 
             # Setup graph and scale node positions
             self.updateSimulationUI()
@@ -308,9 +312,31 @@ class Environment:
 
             # Display the Node ID at the top of the box
             node_text = f"Node ID: {node}"
-            node_label = self.font.render(node_text, True, (0, 0, 0))  # Black text
+            node_label = self.font.render(node_text, True, (0, 0, 0))
             text_rect = node_label.get_rect(center=(box_rect.centerx, box_rect.y + 25)) 
-            self.screen.blit(node_label, text_rect)  # Position near the top
+            self.screen.blit(node_label, text_rect)
+
+            # Position the trash bin sprite within the node container box
+            bin_sprite_pos = (
+                box_rect.centerx - self.trashBinSprite.get_width() // 2,
+                box_rect.centery - self.trashBinSprite.get_height() // 2 + 5
+            )
+
+            # Check if the node has a trash bin
+            if node in self.binPositions.values():
+                # Draw the trash bin sprite
+                self.screen.blit(self.trashBinSprite, bin_sprite_pos)
+
+                # Get the bin stats
+                trashLevel, trashCapacity = self.getBinStats(node)
+
+                # Display the trash level below the sprite
+                trash_level_text = f"Trash: {trashLevel} / {trashCapacity}"  # Create the annotation text
+                trash_label = self.font.render(trash_level_text, True, (0, 0, 0))  # Black text
+
+                # Position the trash level annotation below the sprite
+                trash_text_rect = trash_label.get_rect(center=(box_rect.centerx, box_rect.centery + self.trashBinSprite.get_height() // 2 + 20))
+                self.screen.blit(trash_label, trash_text_rect)
 
         # Draw trucks in red
         for truck_id, node_id in self.truckPositions.items():
@@ -322,9 +348,15 @@ class Environment:
         # Draw bins in green
         for bin_id, node_id in self.binPositions.items():
             x, y = self.positionsUI[node_id]
-            pygame.draw.circle(
-                self.screen, (0, 255, 0), (int(x), int(y)), 10
-            )  # green for bins
+            
+            # # Position Trash Bin sprite in the center of the box
+            # trash_bin_x = box_rect.centerx - self.trashBinSprite.get_width() // 2
+            # trash_bin_y = box_rect.y + 40
+            # self.screen.blit(self.trashBinSprite, (trash_bin_x, trash_bin_y))
+            
+            # pygame.draw.circle(
+            #     self.screen, (0, 255, 0), (int(x), int(y)), 10
+            # )  # green for bins
 
     def updateSimulationUI(self):
         # Update the graph
@@ -437,6 +469,15 @@ class Environment:
 
         # Return the bins found in the given node
         return binsFound
+
+    def getBinStats(self, nodeId : int) -> Tuple[int, int]:
+        # Get all the ids from the bins inside a given node
+        bins = self.getBins(nodeId)
+
+        # Admitting that there is only one bin per nodule max
+        bin = self.agents[bins[0]]
+
+        return (bin.getCurrentTrashLevel(), bin.getTrashMaxCapacity())
 
     # Task Management Methods
 
