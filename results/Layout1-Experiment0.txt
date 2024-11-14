@@ -1,0 +1,61 @@
+# Baseline Experiment
+-> Considered using as much bins and trucks 
+   as half of the total number of nodes in the graph
+-> Simulation time: 8:22
+
+# Trucks
+truckNumber: int = 2
+truckCapacity: int = 50
+truckFuelCapacity: int = 50
+maxTasks: int = 10
+
+# Bins
+binCount: int = 2
+trashGenCooldown: int = 20
+binCapacity: int = 30
+
+# God
+secondsPerHour: int = 20
+secondsBetweenDisasters: int = 30
+secondsBetweenTruckDeath: int = 50
+secondsForNewTruck: int = 40
+
+TRAFFIC_BY_TIME = [
+    # time, from, to
+    (0, 0, 1),
+    (6, 2, 4),
+    (10, 2, 3),
+    (15, 1, 2),
+    (19, 3, 5),
+    (22, 0, 2),
+]
+
+TRASH_BY_TIME = [
+    # time, from, to
+    (0, 1, 3),
+    (6, 9, 12),
+    (10, 4, 5),
+    (15, 4, 7),
+    (19, 7, 10),
+    (22, 1, 3),
+]
+
+======= Stats =======
+fuel_consumed: 119
+trucks_without_fuel: 1
+trucks_over_capacity: 0
+trash_collected: 150
+trash_deposited: 0
+trash_overspill: 125
+disasters: 28
+truck_distance_traveled: defaultdict(<function Stats.<lambda> at 0x7f2d62c72c10>, {'truck0@localhost': 30, 'truck2@localhost': 6, 'truck3@localhost': 6, 'truck4@localhost': 7, 'truck5@localhost': 6, 'truck6@localhost': 6, 'truck7@localhost': 2, 'truck9@localhost': 9, 'truck10@localhost': 7})
+Mean collection time per bin:
+bin0@localhost: 89.62 s
+bin1@localhost: 17.11 s
+binstuck1@localhost: 8.45 s
+binstuck0@localhost: 19.55 s
+binstuck2@localhost: 147.11 s
+binstuck5@localhost: 45.09 s
+binstuck6@localhost: 45.08 s
+binstuck7@localhost: 41.09 s
+binstuck8@localhost: 44.09 s
