@@ -89,12 +89,23 @@ class Environment:
             pygame.display.set_caption("Waste Collection System")
             self.clock = pygame.time.Clock()
 
+            # Colors
+            self.WHITE = (255, 255, 255)
+            self.GREEN = (89,188,149)
+            self.DARK_GREEN = (21,85,57)
+            self.TURQUOISE = (29,162,165)
+            self.DARK_TURQUOISE = (44,129,139)
+            self.LIGHT_RED = (255, 150, 150)
+            self.RED = (206,36,38)
+            self.GRAY = (150, 150, 150)
+
             # Load and set the window icon
             self.icon = pygame.image.load("./Assets/Truck.png")
             pygame.display.set_icon(self.icon)
 
             # Initialize font for node labels
             self.font = pygame.font.SysFont("Arial", 15)
+            self.fontBold = pygame.font.SysFont("Arial", 15, bold=True)
 
             # Load Agent Sprites
             self.trashBinSprite = pygame.image.load("./Assets/TrashBin.png")
@@ -242,6 +253,7 @@ class Environment:
 
     # Graph UI related methods
 
+    # [REMOVE]
     def draw_drop_icon(self, x, y):
         """Draws a simple drop icon at the specified (x, y) position."""
         # Draw the circular part of the drop
@@ -272,7 +284,7 @@ class Environment:
         statsWidth = statsLabel.get_width() * 2
         statsHeight = statsLabel.get_height() + 200
 
-        # Create a background box for the
+        # Create a background box for the Statistics Box
         backgroundBoxStats = pygame.Rect(
             self.SCREEN_WIDTH - statsWidth - 8 * paddingX,
             self.SCREEN_HEIGHT - statsHeight - 4*paddingY,
@@ -282,20 +294,20 @@ class Environment:
 
         # Draw Statistics box background
         pygame.draw.rect(
-            self.screen, (200, 200, 200), backgroundBoxStats, border_radius=8
-        )  # Light gray background
+            self.screen, self.GREEN, backgroundBoxStats, border_radius=8
+        )
         
         # Draw Statistics box border
         pygame.draw.rect(
-            self.screen, (0, 0, 0), backgroundBoxStats, 2, border_radius=8
-        )  # Black border
+            self.screen, self.DARK_GREEN, backgroundBoxStats, 2, border_radius=8
+        )
 
         # Define Initial position and line spacing
         line_spacing = 30
         y_position = backgroundBoxStats.y + paddingY + 15
 
         # Add the Statistics Title into the Statistics Box
-        statsTitle = self.font.render("[STATISTICS]", True, (0, 0, 0))  # Texto preto
+        statsTitle = self.fontBold.render("[STATISTICS]", True, self.WHITE)
         statsTitlePos = statsTitle.get_rect(
             center=(backgroundBoxStats.centerx, y_position)
         )
@@ -305,13 +317,13 @@ class Environment:
         # Add the statistics to the box
         for stat, value in stats:
             # Render the label (left-aligned)
-            label_surface = self.font.render(stat, True, (0, 0, 0))
+            label_surface = self.font.render(stat, True, self.WHITE)
             label_pos = label_surface.get_rect(
                 topleft=(backgroundBoxStats.x + paddingX, y_position)
             )
             
             # Render the value (right-aligned)
-            value_surface = self.font.render(str(value), True, (0, 0, 0))
+            value_surface = self.font.render(str(value), True, self.WHITE)
             value_pos = value_surface.get_rect(
                 topright=(backgroundBoxStats.right - paddingX, y_position)
             )
@@ -322,12 +334,8 @@ class Environment:
 
             # Update the vertical position for the next line
             y_position += line_spacing
-
-    # FIX LATER
-    def drawGraph(self):
-        """Draws the entire environment: nodes, edges, trucks, and bins."""
-        self.screen.fill((173, 216, 230))
-
+    
+    def drawEdges(self):
         # Draw edges
         for startNode in range(self.numberNodes):
             for endNode in range(self.numberNodes):
@@ -336,12 +344,12 @@ class Environment:
                 if edge is not None:
                     # Define Colors for the roads
                     roadColor = (
-                        ((150, 150, 150))
+                        self.GRAY
                         if edge.value.isAvailable()
-                        else (255, 150, 150)
+                        else self.LIGHT_RED
                     )
                     roadDetailsColor = (
-                        (65, 105, 225) if edge.value.isAvailable() else (255, 0, 0)
+                        self.GREEN if edge.value.isAvailable() else self.RED
                     )
 
                     # Get the node coordinates
@@ -382,35 +390,43 @@ class Environment:
                         distanceLabel, (x - textWidth // 2, y - textHeight // 2)
                     )
 
+    # FIX LATER
+    def drawGraph(self):
+        """Draws the entire environment: nodes, edges, trucks, and bins."""
+        self.screen.fill((173, 216, 230))
+
+        # Draw Edges
+        self.drawEdges()
+
         # Draw nodes
         for node, (x, y) in self.positionsUI.items():
             # Define the node's box parameters
-            node_width = 90
-            node_height = 80
+            nodeWidth = 110
+            nodeHeight = 90
 
             # Define the container box for each node
-            box_rect = pygame.Rect(
-                x - node_width // 2, y - node_height // 2, node_width, node_height
+            boxRect = pygame.Rect(
+                x - nodeWidth // 2, y - nodeHeight // 2, nodeWidth, nodeHeight
             )
 
             # Draw the container box with a border
             pygame.draw.rect(
-                self.screen, (200, 200, 200), box_rect, border_radius=8
+                self.screen, self.TURQUOISE, boxRect, border_radius=8
             )  # Light gray background
             pygame.draw.rect(
-                self.screen, (0, 0, 0), box_rect, 2, border_radius=8
+                self.screen, self.DARK_TURQUOISE, boxRect, 2, border_radius=8
             )  # Black border
 
             # Display the Node ID at the top of the box
-            node_text = f"Node ID: {node}"
-            node_label = self.font.render(node_text, True, (0, 0, 0))
-            text_rect = node_label.get_rect(center=(box_rect.centerx, box_rect.y + 15))
+            node_text = f"[Node] {node}"
+            node_label = self.fontBold.render(node_text, True, self.WHITE)
+            text_rect = node_label.get_rect(center=(boxRect.centerx, boxRect.y + 15))
             self.screen.blit(node_label, text_rect)
 
             # Position the trash bin sprite within the node container box
             bin_sprite_pos = (
-                box_rect.centerx - self.trashBinSprite.get_width() // 2,
-                box_rect.centery - self.trashBinSprite.get_height() // 2 + 3,
+                boxRect.centerx - self.trashBinSprite.get_width() // 2,
+                boxRect.centery - self.trashBinSprite.get_height() // 2 + 3,
             )
 
             # Check if the node has a trash bin
@@ -423,13 +439,13 @@ class Environment:
 
                 # Display the trash level below the sprite
                 trash_level_text = f"Trash: {trashLevel} / {trashCapacity}"
-                trash_label = self.font.render(trash_level_text, True, (0, 0, 0))
+                trash_label = self.font.render(trash_level_text, True, self.WHITE)
 
                 # Position the trash level annotation below the sprite
                 trash_text_rect = trash_label.get_rect(
                     center=(
-                        box_rect.centerx,
-                        box_rect.centery + self.trashBinSprite.get_height() // 2 + 15,
+                        boxRect.centerx,
+                        boxRect.centery + self.trashBinSprite.get_height() // 2 + 15,
                     )
                 )
                 self.screen.blit(trash_label, trash_text_rect)
@@ -437,20 +453,19 @@ class Environment:
             # Display the truck sprite above the node box if the node has a truck
             if node in self.truckPositions.values():
                 truck_sprite_pos = (
-                    box_rect.centerx - self.truckSprite.get_width() // 2,
-                    box_rect.y + self.truckSprite.get_height() + node_height // 2 + 10,
+                    boxRect.centerx - self.truckSprite.get_width() // 2,
+                    boxRect.y + self.truckSprite.get_height() + nodeHeight // 2 + 10,
                 )
                 self.screen.blit(self.truckSprite, truck_sprite_pos)
 
             # Display the trash disposit facility
             if node in self.trashDeposits.values():
                 trash_deposit_sprite_pos = (
-                    box_rect.centerx - self.trashFacilitySprite.get_width() // 2,
-                    box_rect.y - self.trashFacilitySprite.get_height(),
+                    boxRect.centerx - self.trashFacilitySprite.get_width() // 2,
+                    boxRect.y - self.trashFacilitySprite.get_height(),
                 )
                 self.screen.blit(self.trashFacilitySprite, trash_deposit_sprite_pos)
 
-        # [TODO: FIX STATISTICS]
         # Draw Statistics
         self.displayStatistics()
 
