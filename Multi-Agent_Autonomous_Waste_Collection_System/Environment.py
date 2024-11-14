@@ -35,7 +35,6 @@ class Road:
     _distance: float
     _availability: int
     _fuelConsumption: float
-    _batteryConsumption: float
 
     def getDistance(self):
         return self._distance
@@ -45,9 +44,6 @@ class Road:
 
     def getFuelConsumption(self):
         return self._fuelConsumption
-
-    def getBatteryConsumption(self):
-        return self._batteryConsumption
 
     def blockRoad(self):
         self._availability = 0
@@ -87,7 +83,9 @@ class Environment:
             # Initialize Pygame
             self.SCREEN_WIDTH = 1080
             self.SCREEN_HEIGHT = 720
-            self.screen = pygame.display.set_mode((self.SCREEN_WIDTH, self.SCREEN_HEIGHT))
+            self.screen = pygame.display.set_mode(
+                (self.SCREEN_WIDTH, self.SCREEN_HEIGHT)
+            )
             pygame.display.set_caption("Waste Collection System")
             self.clock = pygame.time.Clock()
 
@@ -104,7 +102,9 @@ class Environment:
             self.truckSprite = pygame.image.load("./Assets/TrashTruck.png")
             self.truckSprite = pygame.transform.scale(self.truckSprite, (30, 30))
             self.trashFacilitySprite = pygame.image.load("./Assets/TrashFacility.png")
-            self.trashFacilitySprite = pygame.transform.scale(self.trashFacilitySprite, (60, 60))
+            self.trashFacilitySprite = pygame.transform.scale(
+                self.trashFacilitySprite, (60, 60)
+            )
 
             # Setup graph and scale node positions
             self.updateSimulationUI()
@@ -141,13 +141,11 @@ class Environment:
                     availability,
                     distance,
                     fuelConsumption,
-                    batteryConsumption,
                 ) = map(int, line.split(" "))
                 newRoad = Road(
                     distance,
                     bool(availability),
                     fuelConsumption,
-                    batteryConsumption,
                 )
                 # Making the connections directed to both sides
                 newGraph.insertNewEdge(startNode, endNode, newRoad)
@@ -266,17 +264,21 @@ class Environment:
                 edge = self.graph.findEdge(startNode, endNode)
                 if edge is not None:
                     # Define Colors for the roads
-                    roadColor = ((150, 150, 150)) if edge.value.isAvailable() else (255, 150, 150)
-                    roadDetailsColor = (65,105,225) if edge.value.isAvailable() else (255, 0, 0)
+                    roadColor = (
+                        ((150, 150, 150))
+                        if edge.value.isAvailable()
+                        else (255, 150, 150)
+                    )
+                    roadDetailsColor = (
+                        (65, 105, 225) if edge.value.isAvailable() else (255, 0, 0)
+                    )
 
                     # Get the node coordinates
                     x1, y1 = self.positionsUI[startNode]
                     x2, y2 = self.positionsUI[endNode]
-                    
+
                     # Drawing Lines
-                    pygame.draw.line(
-                        self.screen, roadColor, (x1, y1), (x2, y2), 8
-                    )
+                    pygame.draw.line(self.screen, roadColor, (x1, y1), (x2, y2), 8)
 
                     # Display the Distance between them
                     x = (x2 + x1) // 2
@@ -302,8 +304,12 @@ class Environment:
                     )
 
                     # Draw background box and then draw text on top
-                    pygame.draw.rect(self.screen, roadDetailsColor, backgroundBox, border_radius=8)
-                    self.screen.blit(distanceLabel, (x - textWidth // 2, y - textHeight // 2))
+                    pygame.draw.rect(
+                        self.screen, roadDetailsColor, backgroundBox, border_radius=8
+                    )
+                    self.screen.blit(
+                        distanceLabel, (x - textWidth // 2, y - textHeight // 2)
+                    )
 
         # Draw nodes
         for node, (x, y) in self.positionsUI.items():
@@ -327,13 +333,13 @@ class Environment:
             # Display the Node ID at the top of the box
             node_text = f"Node ID: {node}"
             node_label = self.font.render(node_text, True, (0, 0, 0))
-            text_rect = node_label.get_rect(center=(box_rect.centerx, box_rect.y + 15)) 
+            text_rect = node_label.get_rect(center=(box_rect.centerx, box_rect.y + 15))
             self.screen.blit(node_label, text_rect)
 
             # Position the trash bin sprite within the node container box
             bin_sprite_pos = (
                 box_rect.centerx - self.trashBinSprite.get_width() // 2,
-                box_rect.centery - self.trashBinSprite.get_height() // 2 + 3
+                box_rect.centery - self.trashBinSprite.get_height() // 2 + 3,
             )
 
             # Check if the node has a trash bin
@@ -349,7 +355,12 @@ class Environment:
                 trash_label = self.font.render(trash_level_text, True, (0, 0, 0))
 
                 # Position the trash level annotation below the sprite
-                trash_text_rect = trash_label.get_rect(center=(box_rect.centerx, box_rect.centery + self.trashBinSprite.get_height() // 2 + 15))
+                trash_text_rect = trash_label.get_rect(
+                    center=(
+                        box_rect.centerx,
+                        box_rect.centery + self.trashBinSprite.get_height() // 2 + 15,
+                    )
+                )
                 self.screen.blit(trash_label, trash_text_rect)
 
             # Display the truck sprite above the node box if the node has a truck
@@ -376,16 +387,20 @@ class Environment:
         statsHeight = statsLabel.get_height()
         statsWidth = statsLabel.get_width()
 
-        # Create a background box for the 
+        # Create a background box for the
         backgroundBoxStats = pygame.Rect(
             self.SCREEN_WIDTH - statsWidth // 2 - paddingX,
             self.SCREEN_HEIGHT - statsHeight // 2 - paddingY,
             statsWidth + 2 * paddingX,
-            statsHeight + 2 * paddingY
+            statsHeight + 2 * paddingY,
         )
-        
-        pygame.draw.rect(self.screen, (200, 200, 200), backgroundBoxStats, border_radius=8)  # Light gray background
-        pygame.draw.rect(self.screen, (0, 0, 0), backgroundBoxStats, 2, border_radius=8)  # Black border
+
+        pygame.draw.rect(
+            self.screen, (200, 200, 200), backgroundBoxStats, border_radius=8
+        )  # Light gray background
+        pygame.draw.rect(
+            self.screen, (0, 0, 0), backgroundBoxStats, 2, border_radius=8
+        )  # Black border
 
         # Display it on the screen
         self.screen.blit(statsLabel, backgroundBoxStats)
@@ -407,9 +422,17 @@ class Environment:
         self.graph.blockRoad(startNode, endNode)
         self.graph.blockRoad(endNode, startNode)
 
+        # Updates the UI
+        if self.useUI:
+            self.updateSimulationUI()
+
     def freeRoad(self, startNode: int, endNode: int) -> None:
         self.graph.freeRoad(startNode, endNode)
         self.graph.freeRoad(endNode, startNode)
+
+        # Updates the UI
+        if self.useUI:
+            self.updateSimulationUI()
 
     # Truck Related Methods
 
@@ -466,6 +489,10 @@ class Environment:
             # Clean the Bin with the respective Trash Amount
             elif agent == binId:
                 self.agents[agent].removeTrash(trashAmount)
+
+        # Updates the UI
+        if self.useUI:
+            self.updateSimulationUI()
 
     def performTrashRefuel(self, nodeId: int, truckId: str) -> None:
         # Loops through the agents in the node and updates the truck's fuel

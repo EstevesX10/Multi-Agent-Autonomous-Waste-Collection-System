@@ -19,7 +19,6 @@ UNREACHABLE_COST = 99_999
 
 class Tasks:
     PICKUP = "pickup"
-    # TODO: more
 
 
 class TruckMovement(CyclicBehaviour):
