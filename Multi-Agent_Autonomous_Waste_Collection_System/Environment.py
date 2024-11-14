@@ -389,8 +389,8 @@ class Environment:
 
         # Create a background box for the
         backgroundBoxStats = pygame.Rect(
-            self.SCREEN_WIDTH - statsWidth // 2 - paddingX,
-            self.SCREEN_HEIGHT - statsHeight // 2 - paddingY,
+            self.SCREEN_WIDTH - statsWidth - 4 * paddingX,
+            paddingY,
             statsWidth + 2 * paddingX,
             statsHeight + 2 * paddingY,
         )
@@ -403,7 +403,10 @@ class Environment:
         )  # Black border
 
         # Display it on the screen
-        self.screen.blit(statsLabel, backgroundBoxStats)
+        stats_pos = statsLabel.get_rect(
+            center=(backgroundBoxStats.centerx, backgroundBoxStats.y + 15)
+        )
+        self.screen.blit(statsLabel, stats_pos)
 
     def updateSimulationUI(self):
         # Update the graph
