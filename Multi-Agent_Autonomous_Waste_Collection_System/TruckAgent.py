@@ -163,7 +163,7 @@ class ManagerBehaviour(CyclicBehaviour):
             return
 
         msg = Message(
-            metadata={"performative": "query"},
+            metadata={"performative": "cfp"},
             body=f"{bin} {amount}",
         )
         self.agent.logger.debug(f"is broadcasting for {bin}")
@@ -204,7 +204,7 @@ class ManagerBehaviour(CyclicBehaviour):
         # Assign task to choosen
         msg = Message(
             to=str(choosen),
-            metadata={"performative": "request"},
+            metadata={"performative": "accept-proposal"},
             body=f"{bin} {amount} {times[choosen]} {self._shouldDecreaseBin}",
         )
         self.agent.logger.debug(f"choose {msg.to} for {bin}, cost: {costs[choosen]}")
@@ -396,21 +396,21 @@ class AssigneeBehaviour(CyclicBehaviour):
             # Request timed out
             return
 
-        if req.metadata["performative"] == "query":
+        if req.metadata["performative"] == "cfp":
             # Reply with the cost
             bin, amount = req.body.split(" ")
             self.agent.logger.debug(f"got query from {req.sender} for {bin}")
             cost = self.calculate_cost(bin, int(amount))
 
             resp = req.make_reply()
-            resp.metadata = {"performative": "inform"}
+            resp.metadata = {"performative": "propose"}
             resp.body = f"{cost} {self.time}"
             await self.send(resp)
-        elif req.metadata["performative"] == "request":
+        elif req.metadata["performative"] == "accept-proposal":
             # Add new task
             bin, amount, time, decreaseBinPred = req.body.split()
             resp = req.make_reply()
-            resp.metadata = {"performative": "confirm"}
+            resp.metadata = {"performative": "inform"}
             if int(time) >= self.time and self.add_task(
                 bin, int(amount), decreaseBinPred == "True"
             ):
@@ -648,21 +648,21 @@ class TruckAgent(SuperAgent):
 
     def becomeManager(self):
         template = Template()
-        template.set_metadata("performative", "inform")
+        template.set_metadata("performative", "propose")
         template2 = Template()
-        template2.set_metadata("performative", "confirm")
+        template2.set_metadata("performative", "inform")
         self.add_behaviour(ManagerBehaviour(), template | template2)
 
     def becomeStuck(self, canRecover: bool = True):
         template = Template()
-        template.set_metadata("performative", "inform")
+        template.set_metadata("performative", "propose")
         template2 = Template()
-        template2.set_metadata("performative", "confirm")
+        template2.set_metadata("performative", "inform")
         self.add_behaviour(StuckBehaviour(canRecover), template | template2)
 
     def becomeAssignee(self):
         template = Template()
-        template.set_metadata("performative", "query")
+        template.set_metadata("performative", "cfp")
         template2 = Template()
-        template2.set_metadata("performative", "request")
+        template2.set_metadata("performative", "accept-proposal")
         self.add_behaviour(AssigneeBehaviour(), template | template2)
