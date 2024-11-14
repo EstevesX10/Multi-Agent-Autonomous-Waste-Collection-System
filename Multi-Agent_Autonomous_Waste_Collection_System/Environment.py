@@ -94,7 +94,7 @@ class Environment:
             pygame.display.set_icon(self.icon)
 
             # Initialize font for node labels
-            self.font = pygame.font.Font(None, 18)
+            self.font = pygame.font.SysFont("Arial", 15)
 
             # Load Agent Sprites
             self.trashBinSprite = pygame.image.load("./Assets/TrashBin.png")
@@ -252,6 +252,77 @@ class Environment:
             self.screen, (0, 0, 255), [(x, y - 6), (x - 4, y + 4), (x + 4, y + 4)]
         )
 
+    def displayStatistics(self):
+        # Define the Statistics to display
+        stats = [
+            (f"[Fuel Consumed]", Stats.fuel_consumed),
+            (f"[Trucks Without Fuel]", Stats.trucks_without_fuel),
+            (f"[Trucks Over Capacity]", Stats.trucks_over_capacity),
+            (f"[Trash Collected]", Stats.trash_collected),
+            (f"[Trash Deposited]", Stats.trash_deposited),
+            (f"[Trash Overspill]", Stats.trash_overspill),
+        ]
+
+        # Define Padding
+        paddingX, paddingY = 10, 10
+
+        # Get the Stats informations
+        statsText = f"STATISTICS"
+        statsLabel = self.font.render(statsText, True, (0, 0, 0))
+        statsWidth = statsLabel.get_width() * 2
+        statsHeight = statsLabel.get_height() + 200
+
+        # Create a background box for the
+        backgroundBoxStats = pygame.Rect(
+            self.SCREEN_WIDTH - statsWidth - 8 * paddingX,
+            self.SCREEN_HEIGHT - statsHeight - 4*paddingY,
+            statsWidth + 7 * paddingX,
+            statsHeight + 3 * paddingY,
+        )
+
+        # Draw Statistics box background
+        pygame.draw.rect(
+            self.screen, (200, 200, 200), backgroundBoxStats, border_radius=8
+        )  # Light gray background
+        
+        # Draw Statistics box border
+        pygame.draw.rect(
+            self.screen, (0, 0, 0), backgroundBoxStats, 2, border_radius=8
+        )  # Black border
+
+        # Define Initial position and line spacing
+        line_spacing = 30
+        y_position = backgroundBoxStats.y + paddingY + 15
+
+        # Add the Statistics Title into the Statistics Box
+        statsTitle = self.font.render("[STATISTICS]", True, (0, 0, 0))  # Texto preto
+        statsTitlePos = statsTitle.get_rect(
+            center=(backgroundBoxStats.centerx, y_position)
+        )
+        self.screen.blit(statsTitle, statsTitlePos)
+        y_position += line_spacing
+
+        # Add the statistics to the box
+        for stat, value in stats:
+            # Render the label (left-aligned)
+            label_surface = self.font.render(stat, True, (0, 0, 0))
+            label_pos = label_surface.get_rect(
+                topleft=(backgroundBoxStats.x + paddingX, y_position)
+            )
+            
+            # Render the value (right-aligned)
+            value_surface = self.font.render(str(value), True, (0, 0, 0))
+            value_pos = value_surface.get_rect(
+                topright=(backgroundBoxStats.right - paddingX, y_position)
+            )
+
+            # Display the label and value on the screen
+            self.screen.blit(label_surface, label_pos)
+            self.screen.blit(value_surface, value_pos)
+
+            # Update the vertical position for the next line
+            y_position += line_spacing
+
     # FIX LATER
     def drawGraph(self):
         """Draws the entire environment: nodes, edges, trucks, and bins."""
@@ -381,32 +452,7 @@ class Environment:
 
         # [TODO: FIX STATISTICS]
         # Draw Statistics
-        # Get the Stats informations
-        statsText = f"STATS: TO / DO"  # Create the annotation text
-        statsLabel = self.font.render(statsText, True, (0, 0, 0))  # Black text
-        statsHeight = statsLabel.get_height()
-        statsWidth = statsLabel.get_width()
-
-        # Create a background box for the
-        backgroundBoxStats = pygame.Rect(
-            self.SCREEN_WIDTH - statsWidth - 4 * paddingX,
-            paddingY,
-            statsWidth + 2 * paddingX,
-            statsHeight + 2 * paddingY,
-        )
-
-        pygame.draw.rect(
-            self.screen, (200, 200, 200), backgroundBoxStats, border_radius=8
-        )  # Light gray background
-        pygame.draw.rect(
-            self.screen, (0, 0, 0), backgroundBoxStats, 2, border_radius=8
-        )  # Black border
-
-        # Display it on the screen
-        stats_pos = statsLabel.get_rect(
-            center=(backgroundBoxStats.centerx, backgroundBoxStats.y + 15)
-        )
-        self.screen.blit(statsLabel, stats_pos)
+        self.displayStatistics()
 
     def updateSimulationUI(self):
         # Update the graph
