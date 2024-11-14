@@ -86,7 +86,9 @@ class Environment:
 
         if self.useUI:
             # Initialize Pygame
-            self.screen = pygame.display.set_mode((800, 800))
+            self.SCREEN_WIDTH = 1080
+            self.SCREEN_HEIGHT = 720
+            self.screen = pygame.display.set_mode((self.SCREEN_WIDTH, self.SCREEN_HEIGHT))
             pygame.display.set_caption("Waste Collection System")
             self.clock = pygame.time.Clock()
 
@@ -246,7 +248,7 @@ class Environment:
     def draw_drop_icon(self, x, y):
         """Draws a simple drop icon at the specified (x, y) position."""
         # Draw the circular part of the drop
-        pygame.draw.circle(self.screen, (0, 0, 255), (x, y), 6)  # Blue color and size of 6
+        pygame.draw.circle(self.screen, (0, 0, 255), (x, y), 6)
 
         # Draw the triangular tip of the drop
         pygame.draw.polygon(self.screen, (0, 0, 255), [(x, y - 6), (x - 4, y + 4), (x + 4, y + 4)])
@@ -261,11 +263,18 @@ class Environment:
             for endNode in range(self.numberNodes):
                 # Get Edge
                 edge = self.graph.findEdge(startNode, endNode)
-                if edge is not None and edge.value.isAvailable():
+                if edge is not None:
+                    # Define Colors for the roads
+                    roadColor = ((150, 150, 150)) if edge.value.isAvailable() else (255, 150, 150)
+                    roadDetailsColor = (65,105,225) if edge.value.isAvailable() else (255, 0, 0)
+
+                    # Get the node coordinates
                     x1, y1 = self.positionsUI[startNode]
                     x2, y2 = self.positionsUI[endNode]
+                    
+                    # Drawing Lines
                     pygame.draw.line(
-                        self.screen, (150, 150, 150), (x1, y1), (x2, y2), 8
+                        self.screen, roadColor, (x1, y1), (x2, y2), 8
                     )
 
                     # Display the Distance between them
@@ -292,7 +301,7 @@ class Environment:
                     )
 
                     # Draw background box and then draw text on top
-                    pygame.draw.rect(self.screen, (65,105,225), backgroundBox, border_radius=8)
+                    pygame.draw.rect(self.screen, roadDetailsColor, backgroundBox, border_radius=8)
                     self.screen.blit(distanceLabel, (x - textWidth // 2, y - textHeight // 2))
 
         # Draw nodes
@@ -329,8 +338,8 @@ class Environment:
                 trashLevel, trashCapacity = self.getBinStats(node)
 
                 # Display the trash level below the sprite
-                trash_level_text = f"Trash: {trashLevel} / {trashCapacity}"  # Create the annotation text
-                trash_label = self.font.render(trash_level_text, True, (0, 0, 0))  # Black text
+                trash_level_text = f"Trash: {trashLevel} / {trashCapacity}"
+                trash_label = self.font.render(trash_level_text, True, (0, 0, 0))
 
                 # Position the trash level annotation below the sprite
                 trash_text_rect = trash_label.get_rect(center=(box_rect.centerx, box_rect.centery + self.trashBinSprite.get_height() // 2 + 15))
@@ -352,6 +361,27 @@ class Environment:
                 )
                 self.screen.blit(self.trashFacilitySprite, trash_deposit_sprite_pos)
 
+        # [TODO: FIX STATISTICS]
+        # Draw Statistics
+        # Get the Stats informations
+        statsText = f"STATS: TO / DO"  # Create the annotation text
+        statsLabel = self.font.render(statsText, True, (0, 0, 0))  # Black text
+        statsHeight = statsLabel.get_height()
+        statsWidth = statsLabel.get_width()
+
+        # Create a background box for the 
+        backgroundBoxStats = pygame.Rect(
+            self.SCREEN_WIDTH - statsWidth // 2 - paddingX,
+            self.SCREEN_HEIGHT - statsHeight // 2 - paddingY,
+            statsWidth + 2 * paddingX,
+            statsHeight + 2 * paddingY
+        )
+        
+        pygame.draw.rect(self.screen, (200, 200, 200), backgroundBoxStats, border_radius=8)  # Light gray background
+        pygame.draw.rect(self.screen, (0, 0, 0), backgroundBoxStats, 2, border_radius=8)  # Black border
+
+        # Display it on the screen
+        self.screen.blit(statsLabel, backgroundBoxStats)
 
     def updateSimulationUI(self):
         # Update the graph
