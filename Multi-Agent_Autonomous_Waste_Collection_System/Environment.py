@@ -111,7 +111,7 @@ class Environment:
             self.trashBinSprite = pygame.image.load("./Assets/TrashBin.png")
             self.trashBinSprite = pygame.transform.scale(self.trashBinSprite, (30, 30))
             self.truckSprite = pygame.image.load("./Assets/TrashTruck.png")
-            self.truckSprite = pygame.transform.scale(self.truckSprite, (30, 30))
+            self.truckSprite = pygame.transform.scale(self.truckSprite, (40, 40))
             self.trashFacilitySprite = pygame.image.load("./Assets/TrashFacility.png")
             self.trashFacilitySprite = pygame.transform.scale(
                 self.trashFacilitySprite, (60, 60)
@@ -412,10 +412,10 @@ class Environment:
             # Draw the container box with a border
             pygame.draw.rect(
                 self.screen, self.TURQUOISE, boxRect, border_radius=8
-            )  # Light gray background
+            )
             pygame.draw.rect(
                 self.screen, self.DARK_TURQUOISE, boxRect, 2, border_radius=8
-            )  # Black border
+            )
 
             # Display the Node ID at the top of the box
             node_text = f"[Node] {node}"
@@ -454,7 +454,7 @@ class Environment:
             if node in self.truckPositions.values():
                 truck_sprite_pos = (
                     boxRect.centerx - self.truckSprite.get_width() // 2,
-                    boxRect.y + self.truckSprite.get_height() + nodeHeight // 2 + 10,
+                    boxRect.y + self.truckSprite.get_height() + nodeHeight // 2 + 5,
                 )
                 self.screen.blit(self.truckSprite, truck_sprite_pos)
 
