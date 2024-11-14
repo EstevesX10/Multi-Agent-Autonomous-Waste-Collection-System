@@ -1,5 +1,5 @@
-coletar estatisticas para performance - Easy
-- ir adicionando à medida q se vai fazendo
+coletar estatisticas para performance - Easy - feito
+- ir adicionando à medida q se vai fazendo - feito
 
 desastres aka deus - HARD - feito
 - alterar hora influencia:

@@ -3,6 +3,7 @@ import asyncio
 from stats import Stats
 import spade
 import pygame
+import random
 
 # Import developed classes
 from Environment import Environment
@@ -13,16 +14,23 @@ from config import Config
 
 useUI = True
 
+
 # Main Loop
 async def main():
     # Initializing the environment
-    env = Environment(useUI=useUI)
+    env = Environment(envFile="./EnvironmentLayouts/Layout2.txt", useUI=useUI)
     god = God("god@localhost", "password", env)
     await god.start(auto_register=True)
 
+    assert (
+        env.graph.nverts >= Config.binCount
+    ), f"{Config.binCount} bins were requested but there are only {env.graph.nverts} nodes exist"
+
     # Initializing the bins
+    available = [i for i in range(env.graph.nverts)]
+    random.shuffle(available)
     for i in range(Config.binCount):
-        bin = BinAgent(f"bin{i}@localhost", "password", env)
+        bin = BinAgent(f"bin{i}@localhost", "password", env, startPos=available[i])
         await bin.start(auto_register=True)
 
     # Print the agents per nodes of the network

@@ -63,16 +63,15 @@ class Road:
             if x <= time:
                 return random.randint(start, end)
 
-        self.agent.logger.warning(f"{time} is not a valid time")
         return 0
 
 
 class Environment:
-    def __init__(self, useUI=False) -> None:
+    def __init__(
+        self, envFile: str = "./EnvironmentLayouts/Layout1.txt", useUI: bool = False
+    ) -> None:
         self.roads = []
-        self.numberNodes, self.graph, self.positionsUI = self.__readGraph(
-            "./EnvironmentLayouts/Layout1.txt"
-        )
+        self.numberNodes, self.graph, self.positionsUI = self.__readGraph(envFile)
         self.distanceMatrix, self.parentMatrix = self.__calculateMatrices()
         self.truckPositions = {}  # {'TruckID':'NodeID'}
         self.binPositions = {}  # {'BinID':'NodeID'}
@@ -114,7 +113,7 @@ class Environment:
 
     def __readGraph(
         self, envConfiguration: str, verbose: bool = False
-    ) -> Tuple[int, Graph]:
+    ) -> Tuple[int, Graph, dict]:
         # Open the file in read mode
         with open(envConfiguration, "r") as f:
             # Seperate the file contents by lines using the '\n' terminator
@@ -251,7 +250,9 @@ class Environment:
         pygame.draw.circle(self.screen, (0, 0, 255), (x, y), 6)
 
         # Draw the triangular tip of the drop
-        pygame.draw.polygon(self.screen, (0, 0, 255), [(x, y - 6), (x - 4, y + 4), (x + 4, y + 4)])
+        pygame.draw.polygon(
+            self.screen, (0, 0, 255), [(x, y - 6), (x - 4, y + 4), (x + 4, y + 4)]
+        )
 
     # FIX LATER
     def drawGraph(self):
@@ -284,20 +285,20 @@ class Environment:
                     distanceLabel = self.font.render(
                         distanceString, True, (255, 255, 255)
                     )
-                    
+
                     # Get size of the text to create the background box
                     textWidth, textHeight = distanceLabel.get_size()
-                    
+
                     # Define padding
                     paddingY = 4
                     paddingX = 16
 
-                    # Create a background box for the 
+                    # Create a background box for the
                     backgroundBox = pygame.Rect(
                         x - textWidth // 2 - paddingX,
                         y - textHeight // 2 - paddingY,
                         textWidth + 2 * paddingX,
-                        textHeight + 2 * paddingY
+                        textHeight + 2 * paddingY,
                     )
 
                     # Draw background box and then draw text on top
@@ -311,11 +312,17 @@ class Environment:
             node_height = 80
 
             # Define the container box for each node
-            box_rect = pygame.Rect(x - node_width // 2, y - node_height // 2, node_width, node_height)
-            
+            box_rect = pygame.Rect(
+                x - node_width // 2, y - node_height // 2, node_width, node_height
+            )
+
             # Draw the container box with a border
-            pygame.draw.rect(self.screen, (200, 200, 200), box_rect, border_radius=8)  # Light gray background
-            pygame.draw.rect(self.screen, (0, 0, 0), box_rect, 2, border_radius=8)  # Black border
+            pygame.draw.rect(
+                self.screen, (200, 200, 200), box_rect, border_radius=8
+            )  # Light gray background
+            pygame.draw.rect(
+                self.screen, (0, 0, 0), box_rect, 2, border_radius=8
+            )  # Black border
 
             # Display the Node ID at the top of the box
             node_text = f"Node ID: {node}"
@@ -349,7 +356,7 @@ class Environment:
             if node in self.truckPositions.values():
                 truck_sprite_pos = (
                     box_rect.centerx - self.truckSprite.get_width() // 2,
-                    box_rect.y + self.truckSprite.get_height() + node_height // 2 + 10
+                    box_rect.y + self.truckSprite.get_height() + node_height // 2 + 10,
                 )
                 self.screen.blit(self.truckSprite, truck_sprite_pos)
 
@@ -357,7 +364,7 @@ class Environment:
             if node in self.trashDeposits.values():
                 trash_deposit_sprite_pos = (
                     box_rect.centerx - self.trashFacilitySprite.get_width() // 2,
-                    box_rect.y - self.trashFacilitySprite.get_height()
+                    box_rect.y - self.trashFacilitySprite.get_height(),
                 )
                 self.screen.blit(self.trashFacilitySprite, trash_deposit_sprite_pos)
 
@@ -495,7 +502,7 @@ class Environment:
         # Return the bins found in the given node
         return binsFound
 
-    def getBinStats(self, nodeId : int) -> Tuple[int, int]:
+    def getBinStats(self, nodeId: int) -> Tuple[int, int]:
         # Get all the ids from the bins inside a given node
         bins = self.getBins(nodeId)
 

@@ -6,9 +6,9 @@ class Config:
     maxTasks: int = 10
 
     # Bins
-    binCount: int = 20
+    binCount: int = 3
     trashGenCooldown: int = 30
-    binCapacity: int = 0
+    binCapacity: int = 30
 
     # God
     secondsPerHour: int = 30

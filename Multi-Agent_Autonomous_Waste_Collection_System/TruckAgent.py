@@ -181,7 +181,7 @@ class ManagerBehaviour(CyclicBehaviour):
                 )
                 break
             cost, time = resp.body.split()
-            costs[resp.sender] = cost
+            costs[resp.sender] = int(cost)
             times[resp.sender] = time
 
         if len(costs) == 0:
@@ -459,7 +459,7 @@ class StuckBehaviour(ManagerBehaviour):
         if not self.canRecover:
             # Create a temporary bin with the trash that was carrying
             bin = BinAgent(
-                str(self.agent.jid).replace("truck", "stuck"),
+                str(self.agent.jid).replace("truck", "binStuck"),
                 "password",
                 self.agent.env,
                 startTrash=self.agent.getCurrentTrashLevel(),
@@ -516,7 +516,7 @@ class TruckAgent(SuperAgent):
             else random.randint(0, len(self.env.graph.verts) - 1)
         )
 
-        self._currentTrashLevel = 10
+        self._currentTrashLevel = 0
         self._maxTrashCapacity = maxCapacity
 
         self._fueltype = fuelType if fuelType != -1 else random.randint(1, 2)

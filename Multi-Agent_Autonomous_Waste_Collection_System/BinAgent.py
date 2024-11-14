@@ -79,7 +79,7 @@ class BinAgent(SuperAgent):
             else random.randint(0, len(self.env.graph.verts) - 1)
         )
         self._currentTrashLevel = startTrash
-        self._maxTrashCapacity = 30
+        self._maxTrashCapacity = capacity
         self._predictedTrash = self._currentTrashLevel
         self._generatesTrash = generatesTrash
         self._lastCollectTime = datetime.now()
