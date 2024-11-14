@@ -438,33 +438,33 @@ class Environment:
                 trashLevel, trashCapacity = self.getBinStats(node)
 
                 # Display the trash level below the sprite
-                trash_level_text = f"Trash: {trashLevel} / {trashCapacity}"
-                trash_label = self.font.render(trash_level_text, True, self.WHITE)
+                trashLevelText = f"Trash: {trashLevel} / {trashCapacity}"
+                trashLabel = self.font.render(trashLevelText, True, self.WHITE)
 
                 # Position the trash level annotation below the sprite
-                trash_text_rect = trash_label.get_rect(
+                trash_text_rect = trashLabel.get_rect(
                     center=(
                         boxRect.centerx,
                         boxRect.centery + self.trashBinSprite.get_height() // 2 + 15,
                     )
                 )
-                self.screen.blit(trash_label, trash_text_rect)
+                self.screen.blit(trashLabel, trash_text_rect)
 
             # Display the truck sprite above the node box if the node has a truck
             if node in self.truckPositions.values():
-                truck_sprite_pos = (
+                truckSpritePos = (
                     boxRect.centerx - self.truckSprite.get_width() // 2,
                     boxRect.y + self.truckSprite.get_height() + nodeHeight // 2 + 5,
                 )
-                self.screen.blit(self.truckSprite, truck_sprite_pos)
+                self.screen.blit(self.truckSprite, truckSpritePos)
 
             # Display the trash disposit facility
             if node in self.trashDeposits.values():
-                trash_deposit_sprite_pos = (
+                trashDepositSpritePos = (
                     boxRect.centerx - self.trashFacilitySprite.get_width() // 2,
                     boxRect.y - self.trashFacilitySprite.get_height(),
                 )
-                self.screen.blit(self.trashFacilitySprite, trash_deposit_sprite_pos)
+                self.screen.blit(self.trashFacilitySprite, trashDepositSpritePos)
 
         # Draw Statistics
         self.displayStatistics()
