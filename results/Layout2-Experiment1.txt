@@ -41,22 +41,18 @@ TRASH_BY_TIME = [
 ]
 
 ======= Stats =======
-fuel_consumed: 185
+fuel_consumed: 68
 trucks_without_fuel: 0
 trucks_over_capacity: 0
-trash_collected: 640
-trash_deposited: 179
+trash_collected: 460
+trash_deposited: 254
 trash_overspill: 0
-disasters: 26
-truck_distance_traveled: defaultdict(<function Stats.<lambda> at 0x7ff63f9adc10>, {'truck0@localhost': 6, 'truck1@localhost': 2, 'truck3@localhost': 1, 'truck2@localhost': 46, 'truck5@localhost': 5, 'truck7@localhost': 6, 'truck9@localhost': 11, 'truck10@localhost': 5, 'truck12@localhost': 18, 'truck13@localhost': 1})
+disasters: 25
+truck_distance_traveled: defaultdict(<function Stats.<lambda> at 0x7f80d0590c10>, {'truck0@localhost': 28, 'truck1@localhost': 6, 'truck12@localhost': 3})
 Mean collection time per bin:
-bin1@localhost: 19.24 s
-bin2@localhost: 19.38 s
-bin0@localhost: 19.23 s
-binstuck0@localhost: 11.06 s
-binstuck8@localhost: 8.22 s
-binstuck3@localhost: 9.10 s
-binstuck1@localhost: 1.07 s
-binstuck9@localhost: 19.42 s
-binstuck11@localhost: 18.62 s
-binstuck14@localhost: 5.71 s
+bin1@localhost: 19.19 s
+bin2@localhost: 19.18 s
+bin0@localhost: 19.22 s
+binstuck6@localhost: 0.94 s
+binstuck12@localhost: 1.06 s
+binstuck2@localhost: 1.12 s
