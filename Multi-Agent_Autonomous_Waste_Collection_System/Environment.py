@@ -95,15 +95,15 @@ class Environment:
             pygame.display.set_icon(self.icon)
 
             # Initialize font for node labels
-            self.font = pygame.font.Font(None, 24)
+            self.font = pygame.font.Font(None, 18)
 
             # Load Agent Sprites
             self.trashBinSprite = pygame.image.load("./Assets/TrashBin.png")
-            self.trashBinSprite = pygame.transform.scale(self.trashBinSprite, (50, 50))
+            self.trashBinSprite = pygame.transform.scale(self.trashBinSprite, (30, 30))
             self.truckSprite = pygame.image.load("./Assets/TrashTruck.png")
-            self.truckSprite = pygame.transform.scale(self.truckSprite, (50, 50))
+            self.truckSprite = pygame.transform.scale(self.truckSprite, (30, 30))
             self.trashFacilitySprite = pygame.image.load("./Assets/TrashFacility.png")
-            self.trashFacilitySprite = pygame.transform.scale(self.trashFacilitySprite, (80, 80))
+            self.trashFacilitySprite = pygame.transform.scale(self.trashFacilitySprite, (60, 60))
 
             # Setup graph and scale node positions
             self.updateSimulationUI()
@@ -298,8 +298,8 @@ class Environment:
         # Draw nodes
         for node, (x, y) in self.positionsUI.items():
             # Define the node's box parameters
-            node_width = 120
-            node_height = 120
+            node_width = 90
+            node_height = 80
 
             # Define the container box for each node
             box_rect = pygame.Rect(x - node_width // 2, y - node_height // 2, node_width, node_height)
@@ -311,13 +311,13 @@ class Environment:
             # Display the Node ID at the top of the box
             node_text = f"Node ID: {node}"
             node_label = self.font.render(node_text, True, (0, 0, 0))
-            text_rect = node_label.get_rect(center=(box_rect.centerx, box_rect.y + 25)) 
+            text_rect = node_label.get_rect(center=(box_rect.centerx, box_rect.y + 15)) 
             self.screen.blit(node_label, text_rect)
 
             # Position the trash bin sprite within the node container box
             bin_sprite_pos = (
                 box_rect.centerx - self.trashBinSprite.get_width() // 2,
-                box_rect.centery - self.trashBinSprite.get_height() // 2 + 5
+                box_rect.centery - self.trashBinSprite.get_height() // 2 + 3
             )
 
             # Check if the node has a trash bin
@@ -333,7 +333,7 @@ class Environment:
                 trash_label = self.font.render(trash_level_text, True, (0, 0, 0))  # Black text
 
                 # Position the trash level annotation below the sprite
-                trash_text_rect = trash_label.get_rect(center=(box_rect.centerx, box_rect.centery + self.trashBinSprite.get_height() // 2 + 20))
+                trash_text_rect = trash_label.get_rect(center=(box_rect.centerx, box_rect.centery + self.trashBinSprite.get_height() // 2 + 15))
                 self.screen.blit(trash_label, trash_text_rect)
 
             # Display the truck sprite above the node box if the node has a truck
