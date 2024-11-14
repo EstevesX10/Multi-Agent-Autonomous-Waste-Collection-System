@@ -16,17 +16,14 @@ from stats import Stats
 import pygame
 import random
 
-# from BinAgent import (BinAgent)
-# from TruckAgent import (TruckAgent)
-
 TRAFFIC_BY_TIME = [
     # time, from, to
-    (0, 1, 3),
-    (6, 9, 12),
-    (10, 4, 5),
-    (15, 4, 7),
-    (19, 7, 10),
-    (22, 1, 3),
+    (0, 0, 1),
+    (6, 2, 4),
+    (10, 2, 3),
+    (15, 1, 2),
+    (19, 3, 5),
+    (22, 0, 2),
 ]
 
 

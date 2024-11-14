@@ -636,7 +636,7 @@ class TruckAgent(SuperAgent):
         self._currentFuelLevel -= amount
         Stats.fuel_consumed += amount
 
-        if self._currentFuelLevel <= 0:
+        if self._currentFuelLevel < 0:
             # Truck is dead
             Stats.trucks_without_fuel += 1
             self.becomeStuck(canRecover=False)
