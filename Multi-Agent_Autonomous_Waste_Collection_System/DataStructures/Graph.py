@@ -1,6 +1,3 @@
-from spade.agent import Agent
-
-
 class Edge:
     """
     Class representing an edge in a graph.
@@ -212,35 +209,3 @@ class Graph:
         := return: None, since we are only removing an agent from the node.
         """
         self.verts[nodeId].removeAgent(agentId)
-
-    # [NOTE] NOT BEING USED AT THE MOMENT
-    def blockRoad(self, startNode: int, endNode: int) -> None:
-        """
-        # Description
-            -> Blocks a Road inside the graph
-
-        := param: startNode - Start Nodule of the Road
-        := param: endNode - End Nodule of the Road
-        """
-
-        # Find the Road on the Graph
-        node = self.findEdge(startNode, endNode)
-
-        # Block the Road
-        node.blockRoad()
-
-    # [NOTE] NOT BEING USED AT THE MOMENT
-    def freeRoad(self, startNode: int, endNode: int) -> None:
-        """
-        # Description
-            -> Frees a Road inside the graph
-
-        := param: startNode - Start Nodule of the Road
-        := param: endNode - End Nodule of the Road
-        """
-
-        # Find the Road on the Graph
-        node = self.findEdge(startNode, endNode)
-
-        # Free the Road
-        node.freeRoad()

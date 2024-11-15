@@ -1,10 +1,5 @@
 # Import necessary SPADE modules
 from spade.agent import Agent
-from spade.behaviour import CyclicBehaviour, OneShotBehaviour, PeriodicBehaviour
-from spade.template import Template
-from spade.message import Message
-import asyncio
-import spade
 from dataclasses import dataclass
 from typing import Callable, Tuple, List, Union
 
@@ -88,12 +83,12 @@ class Environment:
 
             # Colors
             self.WHITE = (255, 255, 255)
-            self.GREEN = (89,188,149)
-            self.DARK_GREEN = (21,85,57)
-            self.TURQUOISE = (29,162,165)
-            self.DARK_TURQUOISE = (44,129,139)
+            self.GREEN = (89, 188, 149)
+            self.DARK_GREEN = (21, 85, 57)
+            self.TURQUOISE = (29, 162, 165)
+            self.DARK_TURQUOISE = (44, 129, 139)
             self.LIGHT_RED = (255, 150, 150)
-            self.RED = (206,36,38)
+            self.RED = (206, 36, 38)
             self.GRAY = (150, 150, 150)
 
             # Load and set the window icon
@@ -250,17 +245,6 @@ class Environment:
 
     # Graph UI related methods
 
-    # [REMOVE]
-    def draw_drop_icon(self, x, y):
-        """Draws a simple drop icon at the specified (x, y) position."""
-        # Draw the circular part of the drop
-        pygame.draw.circle(self.screen, (0, 0, 255), (x, y), 6)
-
-        # Draw the triangular tip of the drop
-        pygame.draw.polygon(
-            self.screen, (0, 0, 255), [(x, y - 6), (x - 4, y + 4), (x + 4, y + 4)]
-        )
-
     def displayStatistics(self):
         # Define the Statistics to display
         stats = [
@@ -285,16 +269,14 @@ class Environment:
         # Create a background box for the Statistics Box
         backgroundBoxStats = pygame.Rect(
             self.SCREEN_WIDTH - statsWidth - 8 * paddingX,
-            self.SCREEN_HEIGHT - statsHeight - 4*paddingY,
+            self.SCREEN_HEIGHT - statsHeight - 6 * paddingY,
             statsWidth + 7 * paddingX,
-            statsHeight + 3 * paddingY,
+            statsHeight + 5 * paddingY,
         )
 
         # Draw Statistics box background
-        pygame.draw.rect(
-            self.screen, self.GREEN, backgroundBoxStats, border_radius=8
-        )
-        
+        pygame.draw.rect(self.screen, self.GREEN, backgroundBoxStats, border_radius=8)
+
         # Draw Statistics box border
         pygame.draw.rect(
             self.screen, self.DARK_GREEN, backgroundBoxStats, 2, border_radius=8
@@ -319,7 +301,7 @@ class Environment:
             label_pos = label_surface.get_rect(
                 topleft=(backgroundBoxStats.x + paddingX, y_position)
             )
-            
+
             # Render the value (right-aligned)
             value_surface = self.font.render(str(value), True, self.WHITE)
             value_pos = value_surface.get_rect(
@@ -332,7 +314,7 @@ class Environment:
 
             # Update the vertical position for the next line
             y_position += line_spacing
-    
+
     def drawEdges(self):
         # Draw edges
         for startNode in range(self.numberNodes):
@@ -342,9 +324,7 @@ class Environment:
                 if edge is not None:
                     # Define Colors for the roads
                     roadColor = (
-                        self.GRAY
-                        if edge.value.isAvailable()
-                        else self.LIGHT_RED
+                        self.GRAY if edge.value.isAvailable() else self.LIGHT_RED
                     )
                     roadDetailsColor = (
                         self.GREEN if edge.value.isAvailable() else self.RED
@@ -388,7 +368,6 @@ class Environment:
                         distanceLabel, (x - textWidth // 2, y - textHeight // 2)
                     )
 
-    # FIX LATER
     def drawGraph(self):
         """Draws the entire environment: nodes, edges, trucks, and bins."""
         self.screen.fill((173, 216, 230))
@@ -408,9 +387,7 @@ class Environment:
             )
 
             # Draw the container box with a border
-            pygame.draw.rect(
-                self.screen, self.TURQUOISE, boxRect, border_radius=8
-            )
+            pygame.draw.rect(self.screen, self.TURQUOISE, boxRect, border_radius=8)
             pygame.draw.rect(
                 self.screen, self.DARK_TURQUOISE, boxRect, 2, border_radius=8
             )
@@ -478,23 +455,6 @@ class Environment:
 
     def getRoads(self) -> list:
         return self.roads
-
-    # [NOTE] THESE 2 FOLLOWING METHODS ARE NOT BEING CURRENTLY USED AND NEITHER ARE THOSE RESPECTIVE INVOLVED WITHIN THE GRAPH STRUCTURE
-    def blockRoad(self, startNode: int, endNode: int) -> None:
-        self.graph.blockRoad(startNode, endNode)
-        self.graph.blockRoad(endNode, startNode)
-
-        # Updates the UI
-        if self.useUI:
-            self.updateSimulationUI()
-
-    def freeRoad(self, startNode: int, endNode: int) -> None:
-        self.graph.freeRoad(startNode, endNode)
-        self.graph.freeRoad(endNode, startNode)
-
-        # Updates the UI
-        if self.useUI:
-            self.updateSimulationUI()
 
     # Truck Related Methods
 
@@ -600,12 +560,10 @@ class Environment:
 
         return (bin.getCurrentTrashLevel(), bin.getTrashMaxCapacity())
 
-    # Task Management Methods
+    # Miscellanious Methods
 
     def findPath(self, start: int, end: int) -> Union[Tuple[List[int], int, int], None]:
         return a_star(start, end, self.graph, lambda x, y: self.distanceMatrix[x][y])
-
-    # Miscellanious Methods
 
     def getAgentsDistribution(self) -> dict:
         # Initialize a dictionary for the agents within each node
@@ -627,6 +585,7 @@ class Environment:
         return self.graph.verts[nodeId].getAgents()
 
     def tickTime(self):
+        # Advances time forward
         self.time += 1
         self.time %= 24
 

@@ -2,6 +2,7 @@ from typing import Dict, List
 from collections import defaultdict
 
 
+# This class contains all statistics
 class Stats:
     fuel_consumed: int = 0
     trucks_without_fuel: int = 0
@@ -19,6 +20,7 @@ class Stats:
 
     @staticmethod
     def print():
+        # Prints statistics in a more user friendly way
         print("======= Stats =======")
         for var_name in Stats.__annotations__:
             if var_name == "bin_collection_times":

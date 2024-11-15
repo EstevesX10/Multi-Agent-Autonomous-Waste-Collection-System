@@ -10,6 +10,7 @@ import random
 from spade.behaviour import CyclicBehaviour, OneShotBehaviour, PeriodicBehaviour
 
 
+# This behaviour blocks and frees roads periodicaly
 class GodlyBehaviour(PeriodicBehaviour):
     def __init__(self, period: float, start_at: Union[datetime, None] = None):
         super().__init__(period, start_at)
@@ -43,12 +44,16 @@ class GodlyBehaviour(PeriodicBehaviour):
         asyncio.create_task(self.freeRoad(randomRoad))
 
 
+# This behaviour makes the environment time move forward
 class TimeBehaviour(PeriodicBehaviour):
     async def run(self):
         self.agent.env.tickTime()
         self.agent.logger.info(f"has determined its {self.agent.env.time}:00")
 
 
+# This behaviour periodicaly destroys trucks
+# and creates a new one after a cooldown
+# otherwise we eventually would have no trucks left
 class DestroyTruckBehaviour(PeriodicBehaviour):
     async def run(self):
         trucks = [
@@ -61,12 +66,13 @@ class DestroyTruckBehaviour(PeriodicBehaviour):
                 "found no trucks to destroy... and is not happy about it."
             )
             return
+
+        # Choose a victim to destroy
         victim = random.choice(trucks)
         self.agent.logger.info(f"has unleashed its wrath on {victim.jid}")
         victim.becomeStuck(canRecover=False)
         Stats.disasters += 1
 
-        # TODO: maybe truck managers should be able to request new trucks when bins are too full
         await asyncio.sleep(Config.secondsForNewTruck)
 
         await TruckAgent.createTruck(self.agent.env)
@@ -82,12 +88,9 @@ class God(SuperAgent):
     ) -> None:
         super().__init__(jid, password, verify_security)
         self.env = environment
-        self.time = 0
 
     async def setup(self):
-        print(f"[SETUP] {self.jid}\n")
-
-        # Adding a random trash generation (Every 60s)
+        # Add behaviours
         self.add_behaviour(GodlyBehaviour(period=Config.secondsBetweenDisasters))
         self.add_behaviour(TimeBehaviour(period=Config.secondsPerHour))
         self.add_behaviour(

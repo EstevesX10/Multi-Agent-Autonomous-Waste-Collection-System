@@ -1,10 +1,6 @@
 # Import necessary SPADE modules
 from __future__ import annotations
-from spade.behaviour import CyclicBehaviour, OneShotBehaviour, PeriodicBehaviour
-from spade.template import Template
-from spade.message import Message
-import asyncio
-import spade
+from spade.behaviour import PeriodicBehaviour
 import random
 from datetime import datetime
 
@@ -26,6 +22,7 @@ TRASH_BY_TIME = [
 
 class GenerateTrashBehaviour(PeriodicBehaviour):
     def trashByTime(self, time) -> int:
+        # Calculates the generated trash at hour time
         for x, start, end in reversed(TRASH_BY_TIME):
             if x <= time:
                 return random.randint(start, end)
@@ -45,6 +42,7 @@ class GenerateTrashBehaviour(PeriodicBehaviour):
                 f"Full! Capacity: {self.agent.getTrashMaxCapacity()} units."
             )
         else:
+            # Bin has enough capacity
             self.agent.updateTrashLevel(newTrashLevel)
             self.agent._predictedTrash += generated_trash
             Stats.trash_generated += generated_trash
@@ -85,7 +83,6 @@ class BinAgent(SuperAgent):
         self._lastCollectTime = datetime.now()
 
     async def setup(self):
-        print(f"[SETUP] {self.jid}\n")
         self.logger.info(f"has been registed at {self._startPos}")
 
         self.env.addAgent(self._startPos, self)
@@ -148,7 +145,7 @@ class BinAgent(SuperAgent):
     def getPredictedTrashLevel(self) -> int:
         return self._predictedTrash
 
-    def decreasePredictedTrashLevel(self, amount: int) -> int:
+    def decreasePredictedTrashLevel(self, amount: int):
         newAmount = self._predictedTrash - amount
         if newAmount < 0:
             self.logger.warning(

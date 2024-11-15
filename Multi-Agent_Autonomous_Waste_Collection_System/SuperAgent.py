@@ -8,6 +8,7 @@ from copy import copy
 import os
 
 
+# Agent with some utility functions
 class SuperAgent(Agent):
     env: Environment
     logger: logging.Logger
@@ -28,6 +29,7 @@ class SuperAgent(Agent):
     async def broadcast(
         self, msg: Message, type: Type, behaviour: CyclicBehaviour
     ) -> List[str]:
+        # Sends a message to all agents of a given type
         peers = []
         for jid, agent in self.env.agents.items():
             if isinstance(agent, type):

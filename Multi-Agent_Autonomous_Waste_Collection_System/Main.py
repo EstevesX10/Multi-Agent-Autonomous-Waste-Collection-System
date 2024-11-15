@@ -18,7 +18,7 @@ useUI = True
 # Main Loop
 async def main():
     # Initializing the environment
-    env = Environment(envFile="./EnvironmentLayouts/Layout2.txt", useUI=useUI)
+    env = Environment(envFile="./EnvironmentLayouts/Layout1.txt", useUI=useUI)
     god = God("god@localhost", "password", env)
     await god.start(auto_register=True)
 
@@ -56,7 +56,9 @@ if __name__ == "__main__":
 
     # We need to do this because:
     # - spade will kill random tasks for no reason and it will, obviously, lead to many many many stupid bugs we cant control
-    # - catch KeyboardInterrupt: the default run catches the exception and doesnt exit
+    #   no, its not a problem in our code. WE ARE ABSOLUTELY SURE its a bug in spade. (we are happy to explain in more detail if necessary)
+    # - catch KeyboardInterrupt: the default run catches the exception and doesnt exit because our main never returns
+    #   main can not return because asyncio tasks dont keep the program alive, it just terminates
     try:
         spade.container.Container().run(main())
     except KeyboardInterrupt:

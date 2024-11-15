@@ -1,12 +1,12 @@
 class Config:
     # Trucks
-    truckNumber: int = 6
+    truckNumber: int = 2
     truckCapacity: int = 50
     truckFuelCapacity: int = 50
     maxTasks: int = 10
 
     # Bins
-    binCount: int = 7
+    binCount: int = 4
     trashGenCooldown: int = 20
     binCapacity: int = 30
 

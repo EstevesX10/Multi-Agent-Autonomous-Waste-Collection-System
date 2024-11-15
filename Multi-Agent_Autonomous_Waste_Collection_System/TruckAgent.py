@@ -1,10 +1,8 @@
 # Import necessary SPADE modules
-from spade.agent import Agent
-from spade.behaviour import CyclicBehaviour, OneShotBehaviour, PeriodicBehaviour
+from spade.behaviour import CyclicBehaviour
 from spade.template import Template
 from spade.message import Message
 import asyncio
-import spade
 import random
 from typing import Tuple
 
@@ -21,6 +19,7 @@ class Tasks:
     PICKUP = "pickup"
 
 
+# This bahaviour handles task execution and moving to different nodes
 class TruckMovement(CyclicBehaviour):
     async def on_start(self) -> None:
         self.agent.logger.debug("[START TRUCK MOVEMENT]")
@@ -106,13 +105,14 @@ class TruckMovement(CyclicBehaviour):
             currentNode = env.getTruckPosition(truckId)
 
             # Bin should be in current node
-            assert (
-                binId in env.getBins(currentNode)
+            assert binId in env.getBins(
+                currentNode
             ), f"{self.agent.jid} is at {currentNode} and tried to pickup from {binId} which is not there"
 
             # Perform Trash Extraction
             env.performTrashExtraction(currentNode, trashAmount, truckId, binId)
 
+            # This isnt cheating if its just for logging
             binAgent = env.agents[binId]
             predicted = binAgent.getPredictedTrashLevel()
             self.agent.logger.info(
@@ -126,12 +126,15 @@ class TruckMovement(CyclicBehaviour):
         return self.agent.env.getTruckPosition(str(self.agent.jid))
 
 
+# This behaviour distributes tasks among all assignees
+# it uses an adaped version of ContractNet for negotiation
 class ManagerBehaviour(CyclicBehaviour):
     def __init__(self):
         super().__init__()
         self._shouldDecreaseBin = True
 
     def choose_bin(self) -> Tuple[str, int]:
+        # Chooses a bin and how much to collect
         bins = {}
         for jid, agent in self.agent.env.agents.items():
             if isinstance(agent, BinAgent):
@@ -148,7 +151,6 @@ class ManagerBehaviour(CyclicBehaviour):
         if sum(values) != 0:
             choosen = random.choices(keys, weights=values, k=1)[0]
         else:
-            # TODO: decide what to do when all bins are empty
             choosen = keys[0]
         return choosen, bins[choosen]
 
@@ -157,7 +159,6 @@ class ManagerBehaviour(CyclicBehaviour):
         bin, amount = self.choose_bin()
         if amount == 0:
             # Theres no trash to collect
-            # TODO: maybe commit sudoku
             await asyncio.sleep(1)
             return
 
@@ -172,11 +173,10 @@ class ManagerBehaviour(CyclicBehaviour):
         costs = {}
         times = {}
         for _ in range(len(peers)):
-            # TODO: this can in some cases receive the confirmation msg... ?
             resp = await self.receive(timeout=10)
             if not resp:
                 self.agent.logger.debug(
-                    "manager missed some replies, continuing anyway..."
+                    "manager missed some replies (maybe a truck died?), continuing anyway..."
                 )
                 break
             cost, time = resp.body.split()
@@ -184,7 +184,7 @@ class ManagerBehaviour(CyclicBehaviour):
             times[resp.sender] = time
 
         if len(costs) == 0:
-            self.agent.logger.warning("manager got no replies")
+            self.agent.logger.critical("manager got no replies!")
             return
 
         choosen = min(costs.keys(), key=costs.__getitem__)
@@ -197,7 +197,7 @@ class ManagerBehaviour(CyclicBehaviour):
         # never ask to collect more than previously agreed
         amount = min(int(amount), self.agent.env.agents[bin].getPredictedTrashLevel())
         if amount == 0:
-            # Another manager was faster and already has enough trucks inbound
+            # Another manager was faster and bin already has enough trucks inbound
             return
 
         # Assign task to choosen
@@ -220,6 +220,7 @@ class ManagerBehaviour(CyclicBehaviour):
         if confirm.body == "ok":
             self.agent.logger.debug(f"manager got confirmation from {confirm.sender}")
             if confirm.sender == self.agent.jid:
+                # Manager gave a task to itself
                 self.agent.logger.debug("is no longer a manager")
                 self.kill()
         elif confirm.body == "deny":
@@ -230,10 +231,12 @@ class AssigneeBehaviour(CyclicBehaviour):
     time: int = 0
 
     def addTask(self, targetId: str, amount: int, decreaseBinPred: bool) -> bool:
+        # Queue a task if possible
+
         env = self.agent.env
 
-        # Trash prediction may have changed since manager approval
-        # never collect more than previously agreed
+        # Trash prediction may have changed since manager proposal
+        # NEVER collect more than previously agreed
         amount = min(amount, self.agent.env.agents[targetId].getPredictedTrashLevel())
         if amount == 0:
             # There is no trash to collect
@@ -339,8 +342,9 @@ class AssigneeBehaviour(CyclicBehaviour):
         return True
 
     def calculateCost(self, bin: str, amount: int) -> int:
-        env = self.agent.env
+        # Heuristic cost to collect `amount` from `bin`
 
+        env = self.agent.env
         target = env.getBinPosition(bin)
 
         # If target in mid-way and there is enough capacity then cost is zero
@@ -361,11 +365,10 @@ class AssigneeBehaviour(CyclicBehaviour):
         _, distBin, requiredFuelBin = path
 
         # Calculate path from bin to central
-        closestCentral = env.trashDeposits[
-            "trashCentral"
-        ]  # TODO: are there going to be more?
+        closestCentral = env.trashDeposits["trashCentral"]
         path = env.findPath(target, closestCentral)
         if path is None:
+            # We cant be sure of the need to refuel
             return UNREACHABLE_COST
         pathRefuel, distRefuel, requiredFuelRefuel = path
 
@@ -384,6 +387,7 @@ class AssigneeBehaviour(CyclicBehaviour):
 
             refuelCost = distRefuel
 
+        # Calculate final cost
         cost = refuelCost + distBin
 
         return cost
@@ -426,9 +430,11 @@ class AssigneeBehaviour(CyclicBehaviour):
                 resp.body = "deny"
             await self.send(resp)
         else:
-            self.agent.logger.warning(f"Unexpected performative {req.performative}")
+            self.agent.logger.critical(f"Unexpected performative {req.performative}")
 
 
+# This behaviour is added in case of failure
+# it will redistribute all tasks
 class StuckBehaviour(ManagerBehaviour):
     def __init__(self, canRecover: bool = True):
         super().__init__()
@@ -437,15 +443,16 @@ class StuckBehaviour(ManagerBehaviour):
         self.canRecover = canRecover
 
     async def on_start(self):
-        self.agent.logger.warning(
+        self.agent.logger.info(
             f"is stuck!!! Will recover: {self.canRecover}. Distributing current tasks: {self.agent.tasks}"
         )
+
+        # Kill all other behaviours in this agent
         for b in self.agent.behaviours[:]:
             if (
                 isinstance(b, (AssigneeBehaviour, TruckMovement))
                 or type(b) is ManagerBehaviour
             ):
-                # self.agent.remove_behaviour(b)
                 b.kill()
 
         self.toDistribute = list(
@@ -470,6 +477,7 @@ class StuckBehaviour(ManagerBehaviour):
             )
             await bin.start(auto_register=True)
 
+        # Remove truck from environment
         self.agent.env.removeTruck(str(self.agent.jid))
 
         # Receive all pending messages
@@ -477,27 +485,33 @@ class StuckBehaviour(ManagerBehaviour):
             pass
 
     def choose_bin(self) -> Tuple[str, int]:
+        # Override bin selection to instead only select the bins the truck was previously assigneed
         task = self.toDistribute.pop(0)
         _, binId, trashAmount = task.split(" ")
         return binId, trashAmount
 
     async def run(self):
         if len(self.toDistribute) == 0:
+            # All tasks are distributed
+
             if self.canRecover:
+                # Re-add all behaviours and continue normally
                 self.agent.logger.info("recovered and is back operational!")
                 self.agent.becomeAssignee()
                 self.agent.add_behaviour(TruckMovement())
                 self.agent.env.addAgent(nodeId=self.recoverPos, agent=self.agent)
                 self.kill()
             else:
+                # Just kill the agent
                 await self.agent.stop()
             return
 
+        # Distribute tasks normally
         await super().run()
 
 
 class TruckAgent(SuperAgent):
-    # this is static
+    # this is the id for new trucks
     truckCount: int = 0
 
     def __init__(
@@ -518,9 +532,11 @@ class TruckAgent(SuperAgent):
             else random.randint(0, len(self.env.graph.verts) - 1)
         )
 
+        # Truck related stuff
         self._currentTrashLevel = 0
         self._maxTrashCapacity = maxCapacity
 
+        # Fuel stuff
         self._fueltype = fuelType if fuelType != -1 else random.randint(1, 2)
         self._maxFuelCapacity = Config.truckFuelCapacity
         self._currentFuelLevel = self._maxFuelCapacity
@@ -528,6 +544,7 @@ class TruckAgent(SuperAgent):
             1 / self._fueltype
         )  # Constant that determines how fast the truck loses its fuel
 
+        # Task and prediction related stuff
         self.tasks = []
         self.predictedPos = self._startPos
         self.predictedFuel = self._currentFuelLevel
@@ -548,6 +565,7 @@ class TruckAgent(SuperAgent):
 
     @staticmethod
     async def createTruck(env: Environment, pos: int = -1):
+        # Spawns a new truck
         truck = TruckAgent(
             f"truck{TruckAgent.truckCount}@localhost", "password", env, startPos=pos
         )
@@ -601,6 +619,8 @@ class TruckAgent(SuperAgent):
     # Setters
 
     def addTrash(self, amount: int) -> int:
+        # Try add trash and make sure its not over capacity
+
         newTrashLevel = self.getCurrentTrashLevel() + amount
         if newTrashLevel > self.getMaxTrashCapacity():
             # Over capacity
@@ -635,6 +655,7 @@ class TruckAgent(SuperAgent):
         self._currentFuelLevel = self.getMaxFuelLevel()
 
     def consumeFuel(self, amount: int) -> int:
+        # Decrease fuel amount and make sure we don't have to call the tow truck
         amount = int(amount * self._fuelDepletionRate)
 
         self._currentFuelLevel -= amount
@@ -649,6 +670,8 @@ class TruckAgent(SuperAgent):
         return self._currentFuelLevel
 
     def becomeManager(self):
+        # Add manager behaviour
+
         template = Template()
         template.set_metadata("performative", "propose")
         template2 = Template()
@@ -656,6 +679,8 @@ class TruckAgent(SuperAgent):
         self.add_behaviour(ManagerBehaviour(), template | template2)
 
     def becomeStuck(self, canRecover: bool = True):
+        # Add Stuck bahaviour
+
         template = Template()
         template.set_metadata("performative", "propose")
         template2 = Template()
@@ -663,6 +688,8 @@ class TruckAgent(SuperAgent):
         self.add_behaviour(StuckBehaviour(canRecover), template | template2)
 
     def becomeAssignee(self):
+        # Add assignee behaviour
+
         template = Template()
         template.set_metadata("performative", "cfp")
         template2 = Template()
