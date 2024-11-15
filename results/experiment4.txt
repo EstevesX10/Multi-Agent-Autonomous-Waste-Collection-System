@@ -1,0 +1,73 @@
+Simulation time: 8:10
+
+# Config
+layout3
+
+## Trucks
+truckNumber: int = 5
+truckCapacity: int = 50
+truckFuelCapacity: int = 50
+maxTasks: int = 10
+
+## Bins
+binCount: int = 10
+trashGenCooldown: int = 20
+binCapacity: int = 30
+
+## God
+secondsPerHour: int = 20
+secondsBetweenDisasters: int = 30
+secondsBetweenTruckDeath: int = 50
+secondsForNewTruck: int = 40
+
+TRAFFIC_BY_TIME = [
+    # time, from, to
+    (0, 0, 1),
+    (6, 2, 4),
+    (10, 2, 3),
+    (15, 1, 2),
+    (19, 3, 5),
+    (22, 0, 2),
+]
+
+TRASH_BY_TIME = [
+    # time, from, to
+    (0, 1, 3),
+    (6, 9, 12),
+    (10, 4, 5),
+    (15, 4, 7),
+    (19, 7, 10),
+    (22, 1, 3),
+]
+
+======= Stats =======
+fuel_consumed: 602
+trucks_without_fuel: 0
+trucks_over_capacity: 0
+trash_generated: 1292
+trash_collected: 1412
+trash_deposited: 1124
+trash_overspill: 3
+disasters: 26
+truck_distance_traveled: defaultdict(<function Stats.<lambda> at 0x7e1fe0b8a200>, {'truck0@localhost': 110, 'truck3@localhost': 152, 'truck1@localhost': 65, 'truck2@local
+host': 19, 'truck4@localhost': 104, 'truck6@localhost': 2, 'truck7@localhost': 4, 'truck8@localhost': 44, 'truck9@localhost': 32, 'truck10@localhost': 12, 'truck11@localh
+ost': 23, 'truck12@localhost': 5})
+Mean collection time per bin:
+bin0@localhost: 19.27 s
+bin9@localhost: 20.36 s
+bin7@localhost: 20.97 s
+bin1@localhost: 19.33 s
+bin6@localhost: 20.07 s
+bin3@localhost: 21.45 s
+bin4@localhost: 21.49 s
+bin2@localhost: 21.01 s
+bin5@localhost: 20.20 s
+bin8@localhost: 21.87 s
+binstuck2@localhost: 6.06 s
+binstuck6@localhost: 23.45 s
+binstuck7@localhost: 15.59 s
+binstuck1@localhost: 28.79 s
+binstuck0@localhost: 8.41 s
+binstuck8@localhost: 12.17 s
+binstuck10@localhost: 31.12 s
+binstuck3@localhost: 1.27 s

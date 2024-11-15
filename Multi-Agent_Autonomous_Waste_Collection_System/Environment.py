@@ -267,6 +267,7 @@ class Environment:
             (f"[Fuel Consumed]", Stats.fuel_consumed),
             (f"[Trucks Without Fuel]", Stats.trucks_without_fuel),
             (f"[Trucks Over Capacity]", Stats.trucks_over_capacity),
+            (f"[Trash Generated]", Stats.trash_generated),
             (f"[Trash Collected]", Stats.trash_collected),
             (f"[Trash Deposited]", Stats.trash_deposited),
             (f"[Trash Overspill]", Stats.trash_overspill),

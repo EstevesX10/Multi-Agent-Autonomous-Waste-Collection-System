@@ -7,6 +7,7 @@ class Stats:
     trucks_without_fuel: int = 0
     trucks_over_capacity: int = 0
 
+    trash_generated: int = 0
     trash_collected: int = 0
     trash_deposited: int = 0
     trash_overspill: int = 0

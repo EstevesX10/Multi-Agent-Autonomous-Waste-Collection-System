@@ -47,6 +47,7 @@ class GenerateTrashBehaviour(PeriodicBehaviour):
         else:
             self.agent.updateTrashLevel(newTrashLevel)
             self.agent._predictedTrash += generated_trash
+            Stats.trash_generated += generated_trash
             self.agent.logger.info(
                 f"Generated {generated_trash} units of trash. Total now: {self.agent.getCurrentTrashLevel()} units. Predicted: {self.agent.getPredictedTrashLevel()} units."
             )

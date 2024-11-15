@@ -90,7 +90,7 @@ class TruckMovement(CyclicBehaviour):
                 currentTruckPosition, newNodePos, str(self.agent.jid)
             )
             self.agent.logger.debug(
-                f"is now at {newNodePos}. Fuel: {self.agent.getCurrentFuelLevel()}/{self.agent.getMaxFuelLevel()}"
+                f"is now at {newNodePos}. Fuel: {self.agent.getCurrentFuelLevel()}/{self.agent.getMaxFuelLevel()}, predicted fuel: {self.agent.predictedFuel}"
             )
 
         # PICK UP TRASH
@@ -106,8 +106,8 @@ class TruckMovement(CyclicBehaviour):
             currentNode = env.getTruckPosition(truckId)
 
             # Bin should be in current node
-            assert binId in env.getBins(
-                currentNode
+            assert (
+                binId in env.getBins(currentNode)
             ), f"{self.agent.jid} is at {currentNode} and tried to pickup from {binId} which is not there"
 
             # Perform Trash Extraction
@@ -397,8 +397,10 @@ class AssigneeBehaviour(CyclicBehaviour):
         if req.metadata["performative"] == "cfp":
             # Reply with the cost
             bin, amount = req.body.split(" ")
-            self.agent.logger.debug(f"got query from {req.sender} for {bin}")
             cost = self.calculateCost(bin, int(amount))
+            self.agent.logger.debug(
+                f"got query from {req.sender} for {bin}, cost: {cost}"
+            )
 
             resp = req.make_reply()
             resp.metadata = {"performative": "propose"}
@@ -414,7 +416,9 @@ class AssigneeBehaviour(CyclicBehaviour):
             ):
                 # Request is valid
                 self.agent.logger.info(f"accepted {bin} from {req.sender}")
-                self.agent.logger.debug(f"tasks are {self.agent.tasks}")
+                self.agent.logger.debug(
+                    f"tasks are {self.agent.tasks}, pred pos: {self.agent.predictedPos}, fuel: {self.agent.predictedFuel}, trash: {self.agent.predictedTrash}"
+                )
 
                 self.time += 1
                 resp.body = "ok"
@@ -520,7 +524,7 @@ class TruckAgent(SuperAgent):
         self._fueltype = fuelType if fuelType != -1 else random.randint(1, 2)
         self._maxFuelCapacity = Config.truckFuelCapacity
         self._currentFuelLevel = self._maxFuelCapacity
-        self._fuelDepletionRate = 2 * (
+        self._fuelDepletionRate = (
             1 / self._fueltype
         )  # Constant that determines how fast the truck loses its fuel
 

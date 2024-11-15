@@ -1,6 +1,7 @@
 Simulation time: 8:10
 
 # Config
+layout2
 
 ## Trucks
 truckNumber: int = 4
