@@ -1,7 +1,9 @@
-Simulation time: 8:10
+# Experiment 1
+-> Increased the Amount of Trucks inside the Graph, while maitaining the
+   baseline amount of bins
+-> Simulation time: 8:10
 
 # Config
-layout3
 
 ## Trucks
 truckNumber: int = 10

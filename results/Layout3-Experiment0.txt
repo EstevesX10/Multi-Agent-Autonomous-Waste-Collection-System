@@ -1,7 +1,9 @@
-Simulation time: 8:10
+# Baseline Experiment
+-> Considered using as much bins and trucks
+   as half of the total number of nodes in the graph
+-> Simulation time: 8:10
 
 # Config
-layout3
 
 ## Trucks
 truckNumber: int = 5
