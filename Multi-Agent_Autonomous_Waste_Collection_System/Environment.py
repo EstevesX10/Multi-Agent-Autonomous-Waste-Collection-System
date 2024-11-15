@@ -63,9 +63,9 @@ class Environment:
         self.distanceMatrix, self.parentMatrix = self.__calculateMatrices()
         self.truckPositions = {}  # {'TruckID':'NodeID'}
         self.binPositions = {}  # {'BinID':'NodeID'}
-        self.agents = {}  # {'AgentID': 'Agent Object'} - CAN I DO THIS??
-        self.trashDeposits = {"trashCentral": 0}  # MAYBE USE OTHERS
-        self.refuelStations = {"trashCentral": 0}  # MAYBE USE OTHERS
+        self.agents = {}  # {'AgentID': 'Agent Object'}
+        self.trashDeposits = {"trashCentral": 0}
+        self.refuelStations = {"trashCentral": 0}
 
         self.time = 0
 
@@ -369,7 +369,7 @@ class Environment:
                     )
 
     def drawGraph(self):
-        """Draws the entire environment: nodes, edges, trucks, and bins."""
+        # Fill Screen
         self.screen.fill((173, 216, 230))
 
         # Draw Edges
