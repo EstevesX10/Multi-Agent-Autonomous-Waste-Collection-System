@@ -1,5 +1,4 @@
 # Import necessary SPADE modules
-from __future__ import annotations
 from spade.behaviour import PeriodicBehaviour
 import random
 from datetime import datetime
