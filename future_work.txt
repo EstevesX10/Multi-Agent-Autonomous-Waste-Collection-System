@@ -1,3 +1,0 @@
-different types of bins
-experiment with heuristic that penalize fuel more
-dynamically change number of trucks
