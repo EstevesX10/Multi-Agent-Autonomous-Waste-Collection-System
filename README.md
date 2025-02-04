@@ -78,7 +78,7 @@ If you plan to test this project yourself, make sure to review the **Environment
 
 To thoroughly assess how changes to the environment affect **key performance metrics**, we developed **three distinct layouts of varying complexity**, as this approach allowed us to fully visualize and quantify their **impact** across a range of scenarios.
 
-### Layout-1
+### [Layout-1]
 
 <div align="center">
     <table width="70%" height="70%">
@@ -93,7 +93,7 @@ To thoroughly assess how changes to the environment affect **key performance met
             <tr>
                 <td>
                     <p align="center">
-                        <img src="./Multi-Agent-Autonomous-Waste-Collection-System/Assets/Layout1-GUI.png" width="70%" />
+                        <img src="./Multi-Agent-Autonomous-Waste-Collection-System/Assets/Layout1-GUI.png" width="50%" />
                     </p>
                 </td>
             </tr>
@@ -115,7 +115,7 @@ To thoroughly assess how changes to the environment affect **key performance met
 
 </div>
 
-### Layout-2
+### [Layout-2]
 
 <div align="center">
     <table width="50%" height="50%">
@@ -130,7 +130,7 @@ To thoroughly assess how changes to the environment affect **key performance met
             <tr>
                 <td>
                     <p align="center">
-                        <img src="./Multi-Agent-Autonomous-Waste-Collection-System/Assets/Layout2-GUI.png" width="70%"/>
+                        <img src="./Multi-Agent-Autonomous-Waste-Collection-System/Assets/Layout2-GUI.png" width="50%"/>
                     </p>
                 </td>
             </tr>
@@ -152,10 +152,10 @@ To thoroughly assess how changes to the environment affect **key performance met
 
 </div>
 
-### Layout-3
+### [Layout-3]
 
 <div align="center">
-    <table width="70%" height="70%">
+    <table width="40%" height="40%">
         <thead>
             <th>
                 <div align="center">
@@ -167,7 +167,7 @@ To thoroughly assess how changes to the environment affect **key performance met
             <tr>
                 <td>
                     <p align="center">
-                        <img src="./Multi-Agent-Autonomous-Waste-Collection-System/Assets/Layout3-GUI.png" width="70%" />
+                        <img src="./Multi-Agent-Autonomous-Waste-Collection-System/Assets/Layout3-GUI.png" width="45%" />
                     </p>
                 </td>
             </tr>
