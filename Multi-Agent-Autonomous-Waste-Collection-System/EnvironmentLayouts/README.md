@@ -23,4 +23,4 @@ This file focuses on documenting the environment layouts used in the project's d
   3. **availability** - If the road correspondent to the edge is not closed (0 - closed, 1 - open)
   4. **distance** - Distance covered between both start and end nodes (in km)
   5. **fuelConsumption** - How much vehicle running gas consumes between the locations
-  6. **batteryConsumption** - How much a eletric vehicle consumes between the locations
+
