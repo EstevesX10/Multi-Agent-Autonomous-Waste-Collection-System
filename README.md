@@ -93,7 +93,7 @@ To thoroughly assess how changes to the environment affect **key performance met
             <tr>
                 <td>
                     <p align="center">
-                        <img src="./Multi-Agent-Autonomous-Waste-Collection-System/Assets/Layout1-GUI.png" width="50%" />
+                        <img src="./Multi-Agent-Autonomous-Waste-Collection-System/Assets/Layout1-GUI.png" width="70%" />
                     </p>
                 </td>
             </tr>
@@ -130,7 +130,7 @@ To thoroughly assess how changes to the environment affect **key performance met
             <tr>
                 <td>
                     <p align="center">
-                        <img src="./Multi-Agent-Autonomous-Waste-Collection-System/Assets/Layout2-GUI.png" width="50%"/>
+                        <img src="./Multi-Agent-Autonomous-Waste-Collection-System/Assets/Layout2-GUI.png" width="70%"/>
                     </p>
                 </td>
             </tr>
@@ -167,7 +167,7 @@ To thoroughly assess how changes to the environment affect **key performance met
             <tr>
                 <td>
                     <p align="center">
-                        <img src="./Multi-Agent-Autonomous-Waste-Collection-System/Assets/Layout3-GUI.png" width="50%" />
+                        <img src="./Multi-Agent-Autonomous-Waste-Collection-System/Assets/Layout3-GUI.png" width="70%" />
                     </p>
                 </td>
             </tr>
