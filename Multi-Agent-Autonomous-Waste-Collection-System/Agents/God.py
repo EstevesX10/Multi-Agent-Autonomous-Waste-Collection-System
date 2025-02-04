@@ -1,9 +1,9 @@
 from typing import Union
 from datetime import datetime
-from config import Config
+from Utils import Config
 from stats import Stats
-from TruckAgent import TruckAgent
-from SuperAgent import SuperAgent
+from .TruckAgent import TruckAgent
+from .SuperAgent import SuperAgent
 import asyncio
 from Environment import Environment
 import random

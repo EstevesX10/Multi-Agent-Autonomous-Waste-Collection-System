@@ -5,9 +5,9 @@ import random
 from datetime import datetime
 
 from Environment import Environment
-from SuperAgent import SuperAgent
+from .SuperAgent import SuperAgent
 from stats import Stats
-from config import Config
+from Utils import Config
 
 TRASH_BY_TIME = [
     # time, from, to

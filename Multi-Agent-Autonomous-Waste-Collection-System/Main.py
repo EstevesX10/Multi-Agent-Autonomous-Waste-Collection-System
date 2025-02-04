@@ -7,18 +7,17 @@ import random
 
 # Import developed classes
 from Environment import Environment
-from TruckAgent import TruckAgent
-from BinAgent import BinAgent
-from God import God
-from config import Config
+from Agents import TruckAgent
+from Agents import BinAgent
+from Agents import God
+from Utils import Config
 
-useUI = True
-
+useUI = False
 
 # Main Loop
 async def main():
     # Initializing the environment
-    env = Environment(envFile="./EnvironmentLayouts/Layout1.txt", useUI=useUI)
+    env = Environment(envFile="./EnvironmentLayouts/Layout3.txt", useUI=useUI)
     god = God("god@localhost", "password", env)
     await god.start(auto_register=True)
 
@@ -60,6 +59,7 @@ if __name__ == "__main__":
     # - catch KeyboardInterrupt: the default run catches the exception and doesnt exit because our main never returns
     #   main can not return because asyncio tasks dont keep the program alive, it just terminates
     try:
+        # spade.run(main())
         spade.container.Container().run(main())
     except KeyboardInterrupt:
         Stats.print()

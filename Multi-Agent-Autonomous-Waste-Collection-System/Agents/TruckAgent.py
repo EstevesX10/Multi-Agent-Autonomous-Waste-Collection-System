@@ -7,10 +7,10 @@ import random
 from typing import Tuple
 
 from Environment import Environment
-from BinAgent import BinAgent
-from SuperAgent import SuperAgent
+from .BinAgent import BinAgent
+from .SuperAgent import SuperAgent
 from stats import Stats
-from config import Config
+from Utils import Config
 
 UNREACHABLE_COST = 99_999
 
