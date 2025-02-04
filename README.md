@@ -76,73 +76,114 @@ If you plan to test this project yourself, make sure to review the **Environment
 
 ## Project Results
 
-<!-- Developed Layouts  -->
+To thoroughly assess how changes to the environment affect **key performance metrics**, we developed **three distinct layouts of varying complexity**, as this approach allowed us to fully visualize and quantify their **impact** across a range of scenarios.
 
-### Environment Layouts
+### Layout-1
 
-<table width="100%">
-    <thead align="center">
-        <th colspan="4">
-            <div align="center">Developed Layouts</div>
-        </th>
-    </thead>
-    <tbody>
-        <tr>
-            <td></td>
-            <td>
+<div align="center">
+    <table width="70%" height="70%">
+        <thead>
+            <th>
                 <div align="center">
-                    Layout-1
+                    Graphical User Interface
                 </div>
-            </td>
-            <td>
+            </th>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <p align="center">
+                        <img src="./Multi-Agent-Autonomous-Waste-Collection-System/Assets/Layout1-GUI.png" />
+                    </p>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div align="center">
+
+|  **Parameter In Analysis**   | **Baseline** | **Increased Number of Trucks** | **Increased Number of Bins** |
+| :--------------------------: | :----------: | :----------------------------: | :--------------------------: |
+|       Trash Generated        |     250      |              254               |             509              |
+|       Trash Collected        |     289      |              303               |             619              |
+|       Trash Deposited        |     247      |              232               |             484              |
+|       Trash Overspill        |      0       |               0                |              5               |
+|        Fuel Consumed         |      35      |               26               |             120              |
+| Avg Truck Distance Travelled |     9.86     |              7.6               |             40.0             |
+|   Avg Bin Collection Time    |    11.11     |              8.41              |            34.71             |
+
+</div>
+
+### Layout-2
+
+<div align="center">
+    <table width="70%" height="70%">
+        <thead>
+            <th>
                 <div align="center">
-                    Layout-2
+                    Graphical User Interface
                 </div>
-            </td>
-            <td>
+            </th>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <p align="center">
+                        <img src="./Multi-Agent-Autonomous-Waste-Collection-System/Assets/Layout2-GUI.png" />
+                    </p>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+|  **Parameter In Analysis**   | **Baseline** | **Increased Number of Trucks** | **Increased Number of Bins** |
+| :--------------------------: | :----------: | :----------------------------: | :--------------------------: |
+|       Trash Generated        |     386      |              386               |             842              |
+|       Trash Collected        |     475      |              572               |             856              |
+|       Trash Deposited        |     287      |               92               |             724              |
+|       Trash Overspill        |      0       |               0                |              11              |
+|        Fuel Consumed         |     267      |               66               |             321              |
+| Avg Truck Distance Travelled |    34.00     |             12.28              |             46.8             |
+|   Avg Bin Collection Time    |    21.22     |             20.14              |            24.98             |
+
+### Layout-3
+
+<div align="center">
+    <table width="70%" height="70%">
+        <thead>
+            <th>
                 <div align="center">
-                    Layout-3
+                    Graphical User Interface
                 </div>
-            </td>
-        </tr>
-        <tr>
-            <td width="10%">
-                <p align="center" width="100%">
-                    GUI
-                </p>
-            </td>
-            <td width="30%">
-                <p align="center">
-                    <img src="./Multi-Agent-Autonomous-Waste-Collection-System/Assets/Layout1-GUI.png"/>
-                </p>
-            </td>
-            <td width="30%">
-                <p align="center">
-                    <img src="./Multi-Agent-Autonomous-Waste-Collection-System/Assets/Layout2-GUI.png"/>
-                </p>
-            </td>
-            <td width="30%">
-                <p align="center">
-                    <img src="./Multi-Agent-Autonomous-Waste-Collection-System/Assets/Layout3-GUI.png"/>
-                </p>
-            </td>
-        </tr>
-    </tbody>
-</table>
+            </th>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    <p align="center">
+                        <img src="./Multi-Agent-Autonomous-Waste-Collection-System/Assets/Layout3-GUI.png" />
+                    </p>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
 
-<!-- Project Results -->
+|  **Parameter In Analysis**   | **Baseline** | **Increased Number of Trucks** | **Increased Number of Bins** |
+| :--------------------------: | :----------: | :----------------------------: | :--------------------------: |
+|       Trash Generated        |     606      |              646               |             1292             |
+|       Trash Collected        |     701      |              849               |             1412             |
+|       Trash Deposited        |     486      |              466               |             1124             |
+|       Trash Overspill        |      21      |               0                |              3               |
+|        Fuel Consumed         |     386      |               99               |             602              |
+| Avg Truck Distance Travelled |    29.73     |              7.27              |            47.67             |
+|   Avg Bin Collection Time    |    16.71     |             12.64              |            18.49             |
 
-### **Project Results [Layout-2]**
+## Conclusion
 
-| **Trash Generated** | **Baseline** | **Increased Number of Trucks** | **Increased Number of Bins** |
-| :-----------------: | :----------: | :----------------------------: | :--------------------------: |
-|         386         |     386      |              386               |             842              |
-|         475         |     475      |              572               |             856              |
-|         287         |     287      |               92               |             724              |
-|          0          |      0       |               0                |              11              |
-|         267         |     267      |               66               |             321              |
-|        34.00        |    34.00     |             12.28              |             46.8             |
-|        21.22        |    21.22     |             20.14              |            24.98             |
+Our **decentralized approach** ensures **independent** behavior among truck agents working toward the common goal of trash collection. However, this can lead to **suboptimal routing** — trucks may prioritize nearby tasks over global efficiency, resulting in **increased fuel consumption**, **longer completion times**, **overlapping paths**, and **inefficient travel distances**.
 
 ## Authorship
 
