@@ -3,7 +3,7 @@
 </div>
 
 <p align="center" width="100%">
-    <img src="./Multi-Agent_Autonomous_Waste_Collection_System/Assets/GarbageMan.png" width="55%" height="55%" alt="Multi-Agent Autonomous Waste Collection System"/>
+    <img src="./Multi-Agent-Autonomous-Waste-Collection-System/Assets/GarbageMan.png" width="55%" height="55%" alt="Multi-Agent Autonomous Waste Collection System"/>
 </p>
 
 <div align="center">
@@ -70,13 +70,79 @@ Design and implement a **decentralized waste collection system** using Multi-Age
 
 8. `Fault Tolerance`: The system is built to **handle agent failures**, such as trucks going offline or breaking down. When this occurs, the remaining agents automatically **redistribute tasks** to ensure waste collection continues without interruption.
 
-## Environment Setup (Dependencies & Execution)
+## Environment Setup
 
-> ADD ENVIRONMENT SETUP DESCRIPTION AND HYPERLINK TO THE SETUP.md
+If you plan to test this project yourself, make sure to review the **Environment** details by checking the [SETUP.md](https://github.com/EstevesX10/Multi-Agent-Autonomous-Waste-Collection-System/blob/main/SETUP.md) file for more information.
 
 ## Project Results
 
-> ADD PROJECT RESULTS
+<!-- Developed Layouts  -->
+
+### Environment Layouts
+
+<table width="100%">
+    <thead align="center">
+        <th colspan="4">
+            <div align="center">Developed Layouts</div>
+        </th>
+    </thead>
+    <tbody>
+        <tr>
+            <td></td>
+            <td>
+                <div align="center">
+                    Layout-1
+                </div>
+            </td>
+            <td>
+                <div align="center">
+                    Layout-2
+                </div>
+            </td>
+            <td>
+                <div align="center">
+                    Layout-3
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td width="10%">
+                <p align="center" width="100%">
+                    GUI
+                </p>
+            </td>
+            <td width="30%">
+                <p align="center">
+                    <img src="./Multi-Agent-Autonomous-Waste-Collection-System/Assets/Layout1-GUI.png"/>
+                </p>
+            </td>
+            <td width="30%">
+                <p align="center">
+                    <img src="./Multi-Agent-Autonomous-Waste-Collection-System/Assets/Layout2-GUI.png"/>
+                </p>
+            </td>
+            <td width="30%">
+                <p align="center">
+                    <img src="./Multi-Agent-Autonomous-Waste-Collection-System/Assets/Layout3-GUI.png"/>
+                </p>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<!-- Project Results -->
+
+### **Project Results [Layout-2]**
+
+| **Trash Generated** | **Baseline** | **Increased Number of Trucks** | **Increased Number of Bins** |
+| :-----------------: | :----------: | :----------------------------: | :--------------------------: |
+|         386         |     386      |              386               |             842              |
+|         475         |     475      |              572               |             856              |
+|         287         |     287      |               92               |             724              |
+|          0          |      0       |               0                |              11              |
+|         267         |     267      |               66               |             321              |
+|        34.00        |    34.00     |             12.28              |             46.8             |
+|        21.22        |    21.22     |             20.14              |            24.98             |
 
 ## Authorship
 
