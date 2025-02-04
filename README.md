@@ -118,7 +118,7 @@ To thoroughly assess how changes to the environment affect **key performance met
 ### Layout-2
 
 <div align="center">
-    <table width="70%" height="70%">
+    <table width="50%" height="50%">
         <thead>
             <th>
                 <div align="center">
@@ -138,6 +138,8 @@ To thoroughly assess how changes to the environment affect **key performance met
     </table>
 </div>
 
+<div align="center">
+
 |  **Parameter In Analysis**   | **Baseline** | **Increased Number of Trucks** | **Increased Number of Bins** |
 | :--------------------------: | :----------: | :----------------------------: | :--------------------------: |
 |       Trash Generated        |     386      |              386               |             842              |
@@ -147,6 +149,8 @@ To thoroughly assess how changes to the environment affect **key performance met
 |        Fuel Consumed         |     267      |               66               |             321              |
 | Avg Truck Distance Travelled |    34.00     |             12.28              |             46.8             |
 |   Avg Bin Collection Time    |    21.22     |             20.14              |            24.98             |
+
+</div>
 
 ### Layout-3
 
@@ -171,6 +175,8 @@ To thoroughly assess how changes to the environment affect **key performance met
     </table>
 </div>
 
+<div align="center">
+
 |  **Parameter In Analysis**   | **Baseline** | **Increased Number of Trucks** | **Increased Number of Bins** |
 | :--------------------------: | :----------: | :----------------------------: | :--------------------------: |
 |       Trash Generated        |     606      |              646               |             1292             |
@@ -180,6 +186,8 @@ To thoroughly assess how changes to the environment affect **key performance met
 |        Fuel Consumed         |     386      |               99               |             602              |
 | Avg Truck Distance Travelled |    29.73     |              7.27              |            47.67             |
 |   Avg Bin Collection Time    |    16.71     |             12.64              |            18.49             |
+
+</div>
 
 ## Conclusion
 
